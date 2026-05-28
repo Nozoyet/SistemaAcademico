@@ -10,7 +10,7 @@ class Carrera extends Model
     protected $primaryKey = 'id';
     public $timestamps = false;
 
-    protected $fillable = ['codigo', 'nombre', 'descripcion', 'estado', 'idModalidad'];
+    protected $fillable = ['codigo', 'nombre', 'descripcion', 'estado', 'idModalidad', 'usuarioA', 'estadoA'];
 
     public function pensums()
     {

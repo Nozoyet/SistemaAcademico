@@ -10,7 +10,7 @@ class Materia extends Model
     protected $primaryKey = 'id';
     public $timestamps = false;
 
-    protected $fillable = ['codigo', 'nombre', 'creditos', 'descripcion', 'idPensum'];
+    protected $fillable = ['codigo', 'nombre', 'creditos', 'descripcion', 'semestre', 'idPrerequisito', 'idPensum', 'estado', 'usuarioA', 'estadoA'];
 
     public function pensum()
     {
@@ -20,5 +20,10 @@ class Materia extends Model
     public function cursos()
     {
         return $this->hasMany(Curso::class, 'idMateria', 'id');
+    }
+
+    public function prerrequisito()
+    {
+        return $this->belongsTo(Materia::class, 'idPrerequisito', 'id');
     }
 }

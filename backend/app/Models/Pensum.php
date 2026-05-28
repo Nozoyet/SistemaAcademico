@@ -10,7 +10,17 @@ class Pensum extends Model
     protected $primaryKey = 'id';
     public $timestamps = false;
 
-    protected $fillable = ['idCarrera', 'anioCreacion', 'estado'];
+    protected $fillable = [
+        'idCarrera',
+        'anioCreacion',
+        'duracion',
+        'descripcion',
+        'creditos_totales',
+        'estado',
+        'usuarioA',
+        'estadoA',
+        'fechaHoraA',
+    ];
 
     public function carrera()
     {

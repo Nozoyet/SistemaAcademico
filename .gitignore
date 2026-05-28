@@ -1,3 +1,6 @@
-backend/database/migrations/2026_05_27_002033_create_personal_access_tokens_table.php
-frontend/package-lock.json
-frontend/package-lock.json
+.env
+vendor/
+node_modules/
+dist/
+.DS_Store
+*.log

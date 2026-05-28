@@ -4,6 +4,10 @@ import Bienvenida from './pages/Bienvenida.jsx';
 import Reportes from './pages/admin/Reportes.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import GestionarUsuarios from './pages/admin/GestionarUsuarios.jsx';
+import PensumLista from './pages/admin/pensum/PensumLista.jsx';
+import PensumForm from './pages/admin/pensum/PensumForm.jsx';
+import PensumDetalle from './pages/admin/pensum/PensumDetalle.jsx';
+import PensumArbol from './pages/admin/pensum/PensumArbol.jsx';
 
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/login" replace /> },
@@ -22,6 +26,38 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute roles={['Administrador']}>
         <Reportes />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/pensum',
+    element: (
+      <ProtectedRoute roles={['Administrador']}>
+        <PensumLista />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/pensum/nuevo',
+    element: (
+      <ProtectedRoute roles={['Administrador']}>
+        <PensumForm />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/pensum/:id/arbol',
+    element: (
+      <ProtectedRoute roles={['Administrador']}>
+        <PensumArbol />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/pensum/:id',
+    element: (
+      <ProtectedRoute roles={['Administrador']}>
+        <PensumDetalle />
       </ProtectedRoute>
     ),
   },
