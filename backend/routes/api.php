@@ -14,7 +14,7 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
- 
+
     // Gestión de usuarios (RF09 - solo Administrador)
     Route::prefix('usuarios')->group(function () {
         Route::get('/',           [UsuarioController::class, 'index']);        // Listar usuarios
@@ -22,5 +22,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/{id}',    [UsuarioController::class, 'destroy']);      // Eliminar usuario
         Route::put('/{id}/rol',   [UsuarioController::class, 'asignarRol']);   // Asignar rol
     });
- 
+});
+Route::middleware(['auth:sanctum', 'admin'])->prefix('reportes')->group(function () {
+    Route::get('carreras', [ReporteController::class, 'carreras']);
+    Route::get('materias', [ReporteController::class, 'materiasXCarrera']);
+    Route::get('exportar-pdf/{carreraId}', [ReporteController::class, 'exportPdf']);
+    Route::get('exportar-excel/{carreraId}', [ReporteController::class, 'exportExcel']);
 });

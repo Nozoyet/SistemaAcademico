@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import Login from './pages/auth/Login.jsx';
 import Bienvenida from './pages/Bienvenida.jsx';
+import Reportes from './pages/admin/Reportes.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import GestionarUsuarios from './pages/admin/GestionarUsuarios.jsx';
 
@@ -13,6 +14,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute roles={['Administrador']}>
         <Bienvenida />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/reportes',
+    element: (
+      <ProtectedRoute roles={['Administrador']}>
+        <Reportes />
       </ProtectedRoute>
     ),
   },
