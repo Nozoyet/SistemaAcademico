@@ -1,0 +1,320 @@
+import { useEffect, useState } from "react";
+import { getUsuarios, eliminarUsuario, asignarRol } from "../../services/api";
+import FormCrearUsuario from "../../components/forms/FormCrearUsuario";
+
+const ROLES = ["Estudiante", "Docente", "Administrador"];
+
+const ROL_CONFIG = {
+  Administrador: { color: "#7C3AED", bg: "#EDE9FE" },
+  Docente:       { color: "#0369A1", bg: "#E0F2FE" },
+  Estudiante:    { color: "#047857", bg: "#D1FAE5" },
+};
+
+function Avatar({ nombre, apellido }) {
+  const initials = `${nombre?.[0] ?? ""}${apellido?.[0] ?? ""}`.toUpperCase();
+  const colors = ["#6366F1","#EC4899","#F59E0B","#10B981","#3B82F6","#8B5CF6","#EF4444","#14B8A6"];
+  const color = colors[(nombre?.charCodeAt(0) ?? 0) % colors.length];
+  return (
+    <div style={{
+      width: 36, height: 36, borderRadius: "50%",
+      backgroundColor: color, color: "#fff",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: 13, fontWeight: 700, flexShrink: 0, letterSpacing: 0.5,
+    }}>
+      {initials || "?"}
+    </div>
+  );
+}
+
+export default function GestionUsuarios() {
+  const [usuarios, setUsuarios]       = useState([]);
+  const [cargando, setCargando]       = useState(true);
+  const [error, setError]             = useState("");
+  const [mostrarForm, setMostrarForm] = useState(false);
+  const [busqueda, setBusqueda]       = useState("");
+  const [confirmId, setConfirmId]     = useState(null);
+  const [filtroRol, setFiltroRol]     = useState("Todos");
+  const [notif, setNotif]             = useState(null);
+
+  useEffect(() => { cargarUsuarios(); }, []);
+
+  const cargarUsuarios = async () => {
+    setCargando(true); setError("");
+    try { const r = await getUsuarios(); setUsuarios(r.data); }
+    catch { setError("No se pudieron cargar los usuarios. Verifica tu conexión."); }
+    finally { setCargando(false); }
+  };
+
+  const mostrarNotif = (msg, tipo = "ok") => {
+    setNotif({ msg, tipo });
+    setTimeout(() => setNotif(null), 3000);
+  };
+
+  const handleCreado = (u) => {
+    setUsuarios(p => [...p, u]);
+    setMostrarForm(false);
+    mostrarNotif(`Usuario ${u.nombreUsuario} creado correctamente.`);
+  };
+
+  const handleEliminar = async (id) => {
+    try {
+      await eliminarUsuario(id);
+      setUsuarios(p => p.filter(u => u.id !== id));
+      mostrarNotif("Usuario eliminado del sistema.");
+    } catch (e) {
+      mostrarNotif(e.response?.data?.message || "Error al eliminar.", "error");
+    } finally { setConfirmId(null); }
+  };
+
+  const handleRol = async (id, rol) => {
+    try {
+      await asignarRol(id, rol);
+      setUsuarios(p => p.map(u => u.id === id ? { ...u, rol } : u));
+      mostrarNotif("Rol actualizado correctamente.");
+    } catch (e) {
+      mostrarNotif(e.response?.data?.message || "Error al cambiar rol.", "error");
+    }
+  };
+
+  const filtrados = usuarios.filter(u => {
+    const t = busqueda.toLowerCase();
+    const matchBusq = !t || [u.nombre1, u.apellidoP, u.email, u.nombreUsuario, u.rol]
+      .some(v => v?.toLowerCase().includes(t));
+    const matchRol = filtroRol === "Todos" || u.rol === filtroRol;
+    return matchBusq && matchRol;
+  });
+
+  const conteo = (rol) => usuarios.filter(u => u.rol === rol).length;
+
+  return (
+    <div style={{ minHeight: "100vh", backgroundColor: "#F8FAFC", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+
+      {/* Notificación */}
+      {notif && (
+        <div style={{
+          position: "fixed", top: 20, right: 20, zIndex: 9999,
+          backgroundColor: notif.tipo === "error" ? "#FEF2F2" : "#F0FDF4",
+          color: notif.tipo === "error" ? "#DC2626" : "#16A34A",
+          border: `1px solid ${notif.tipo === "error" ? "#FECACA" : "#BBF7D0"}`,
+          padding: "12px 20px", borderRadius: 10, fontSize: 13, fontWeight: 500,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.1)", animation: "slideIn 0.3s ease",
+        }}>
+          {notif.tipo === "error" ? "✕ " : "✓ "}{notif.msg}
+        </div>
+      )}
+
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px" }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: "#6366F1", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4, margin: "0 0 4px" }}>
+                Panel de Administración
+              </p>
+              <h1 style={{ fontSize: 26, fontWeight: 800, color: "#0F172A", margin: "0 0 4px", letterSpacing: -0.5 }}>
+                Gestión de Usuarios
+              </h1>
+              <p style={{ color: "#64748B", fontSize: 13, margin: 0 }}>
+                {usuarios.length} usuarios registrados en el sistema
+              </p>
+            </div>
+            <button
+              onClick={() => setMostrarForm(true)}
+              style={{
+                backgroundColor: "#6366F1", color: "#fff", border: "none",
+                padding: "11px 20px", borderRadius: 10, fontSize: 14, fontWeight: 600,
+                cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
+                boxShadow: "0 4px 14px rgba(99,102,241,0.35)",
+              }}
+              onMouseOver={e => e.currentTarget.style.backgroundColor = "#4F46E5"}
+              onMouseOut={e => e.currentTarget.style.backgroundColor = "#6366F1"}
+            >
+              <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Nuevo usuario
+            </button>
+          </div>
+
+          {/* Tarjetas resumen */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginTop: 20 }}>
+            {[
+              { label: "Total", valor: usuarios.length, color: "#6366F1" },
+              { label: "Administradores", valor: conteo("Administrador"), color: "#7C3AED" },
+              { label: "Docentes", valor: conteo("Docente"), color: "#0369A1" },
+              { label: "Estudiantes", valor: conteo("Estudiante"), color: "#047857" },
+            ].map(({ label, valor, color }) => (
+              <div key={label} style={{
+                backgroundColor: "#fff", border: "1px solid #E2E8F0",
+                borderRadius: 12, padding: "14px 18px",
+                borderLeft: `4px solid ${color}`,
+              }}>
+                <p style={{ fontSize: 11, color: "#94A3B8", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.8, margin: "0 0 4px" }}>{label}</p>
+                <p style={{ fontSize: 26, fontWeight: 800, color, margin: 0 }}>{valor}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Filtros */}
+        <div style={{
+          backgroundColor: "#fff", border: "1px solid #E2E8F0",
+          borderRadius: 12, padding: "14px 18px", marginBottom: 14,
+          display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center",
+        }}>
+          <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
+            <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: "#94A3B8" }}>🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar por nombre, email o usuario..."
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              style={{
+                width: "100%", padding: "8px 12px 8px 34px",
+                border: "1px solid #E2E8F0", borderRadius: 8, fontSize: 13,
+                outline: "none", backgroundColor: "#F8FAFC", boxSizing: "border-box", color: "#0F172A",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {["Todos", ...ROLES].map(r => (
+              <button key={r} onClick={() => setFiltroRol(r)} style={{
+                padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+                border: "1px solid", cursor: "pointer",
+                backgroundColor: filtroRol === r ? "#6366F1" : "#fff",
+                borderColor: filtroRol === r ? "#6366F1" : "#E2E8F0",
+                color: filtroRol === r ? "#fff" : "#64748B",
+              }}>
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div style={{ backgroundColor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA", padding: "12px 16px", borderRadius: 10, marginBottom: 14, fontSize: 13 }}>
+            ⚠️ {error}
+          </div>
+        )}
+
+        {/* Tabla */}
+        <div style={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, overflow: "hidden" }}>
+          {cargando ? (
+            <div style={{ padding: 60, textAlign: "center", color: "#94A3B8" }}>
+              <p style={{ margin: 0, fontSize: 14 }}>⏳ Cargando usuarios...</p>
+            </div>
+          ) : filtrados.length === 0 ? (
+            <div style={{ padding: 60, textAlign: "center" }}>
+              <p style={{ fontSize: 36, margin: "0 0 8px" }}>👤</p>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#64748B" }}>No se encontraron usuarios</p>
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: "#94A3B8" }}>Prueba con otros términos de búsqueda</p>
+            </div>
+          ) : (
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <thead>
+                <tr style={{ backgroundColor: "#F8FAFC", borderBottom: "2px solid #E2E8F0" }}>
+                  {["Usuario", "Nombre de usuario", "Correo electrónico", "Rol", "Acciones"].map(h => (
+                    <th key={h} style={{ padding: "11px 16px", textAlign: "left", fontWeight: 700, color: "#64748B", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtrados.map((u, i) => (
+                  <tr key={u.id}
+                    style={{ borderBottom: i < filtrados.length - 1 ? "1px solid #F1F5F9" : "none" }}
+                    onMouseOver={e => e.currentTarget.style.backgroundColor = "#FAFBFF"}
+                    onMouseOut={e => e.currentTarget.style.backgroundColor = "transparent"}
+                  >
+                    <td style={{ padding: "13px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <Avatar nombre={u.nombre1} apellido={u.apellidoP} />
+                        <span style={{ fontWeight: 600, color: "#0F172A" }}>
+                          {u.nombre1} {u.nombre2 || ""} {u.apellidoP} {u.apellidoM || ""}
+                        </span>
+                      </div>
+                    </td>
+                    <td style={{ padding: "13px 16px" }}>
+                      <code style={{ backgroundColor: "#F1F5F9", padding: "2px 8px", borderRadius: 5, fontSize: 12, color: "#475569" }}>
+                        {u.nombreUsuario}
+                      </code>
+                    </td>
+                    <td style={{ padding: "13px 16px", color: "#475569" }}>{u.email}</td>
+                    <td style={{ padding: "13px 16px" }}>
+                      <select
+                        value={u.rol}
+                        onChange={e => handleRol(u.id, e.target.value)}
+                        style={{
+                          backgroundColor: ROL_CONFIG[u.rol]?.bg ?? "#F3F4F6",
+                          color: ROL_CONFIG[u.rol]?.color ?? "#6B7280",
+                          border: `1px solid ${ROL_CONFIG[u.rol]?.color ?? "#6B7280"}44`,
+                          borderRadius: 20, padding: "4px 10px",
+                          fontSize: 11, fontWeight: 700, cursor: "pointer", outline: "none",
+                        }}
+                      >
+                        {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </td>
+                    <td style={{ padding: "13px 16px" }}>
+                      <button
+                        onClick={() => setConfirmId(u.id)}
+                        style={{
+                          backgroundColor: "#FEF2F2", color: "#DC2626",
+                          border: "1px solid #FECACA", borderRadius: 7,
+                          padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                        }}
+                        onMouseOver={e => { e.currentTarget.style.backgroundColor = "#DC2626"; e.currentTarget.style.color = "#fff"; }}
+                        onMouseOut={e => { e.currentTarget.style.backgroundColor = "#FEF2F2"; e.currentTarget.style.color = "#DC2626"; }}
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {!cargando && filtrados.length > 0 && (
+            <div style={{ padding: "10px 16px", backgroundColor: "#F8FAFC", borderTop: "1px solid #F1F5F9", fontSize: 12, color: "#94A3B8" }}>
+              Mostrando {filtrados.length} de {usuarios.length} usuarios
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modal Crear */}
+      {mostrarForm && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 16 }}>
+          <div style={{ backgroundColor: "#fff", borderRadius: 16, padding: 28, width: "100%", maxWidth: 520, boxShadow: "0 25px 60px rgba(0,0,0,0.2)" }}>
+            <FormCrearUsuario onUsuarioCreado={handleCreado} onCancelar={() => setMostrarForm(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Modal Confirmar Eliminar */}
+      {confirmId && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 16 }}>
+          <div style={{ backgroundColor: "#fff", borderRadius: 16, padding: 28, width: "100%", maxWidth: 360, textAlign: "center", boxShadow: "0 25px 60px rgba(0,0,0,0.2)" }}>
+            <div style={{ width: 52, height: 52, backgroundColor: "#FEF2F2", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 22 }}>🗑️</div>
+            <h3 style={{ margin: "0 0 8px", fontSize: 17, fontWeight: 700, color: "#0F172A" }}>¿Eliminar usuario?</h3>
+            <p style={{ color: "#64748B", fontSize: 13, margin: "0 0 24px" }}>
+              Esta acción desactivará al usuario. No podrá iniciar sesión en el sistema.
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setConfirmId(null)} style={{
+                flex: 1, padding: "10px 0", borderRadius: 8, border: "1px solid #E2E8F0",
+                backgroundColor: "#fff", color: "#475569", fontSize: 13, fontWeight: 600, cursor: "pointer",
+              }}>Cancelar</button>
+              <button onClick={() => handleEliminar(confirmId)} style={{
+                flex: 1, padding: "10px 0", borderRadius: 8, border: "none",
+                backgroundColor: "#DC2626", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
+              }}>Sí, eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`@keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }`}</style>
+    </div>
+  );
+}
