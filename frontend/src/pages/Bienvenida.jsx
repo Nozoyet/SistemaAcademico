@@ -17,7 +17,7 @@ const ROL_CONFIG = {
     desc: "Gestiona carreras, cursos, usuarios y toda la configuración del sistema académico.",
     links: [
       { label: "Gestionar cursos", href: "/admin/cursos", icon: "📚" },
-    { label: "Usuarios", href: "/admin/usuarios", icon: "👥" },
+    { label: "Usuarios", href: "/admin/GestionarUsuarios", icon: "👥" },
     { label: "Reportes", href: "/admin/reportes", icon: "📊" },
     { label: "Gestionar Pensum", href: "/admin/pensum", icon: "🗂️" },
     { label: "Perfil", href: "/admin/perfil", icon: "👤" },
