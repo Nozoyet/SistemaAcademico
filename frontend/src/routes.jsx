@@ -8,6 +8,7 @@ import PensumLista from './pages/admin/pensum/PensumLista.jsx';
 import PensumForm from './pages/admin/pensum/PensumForm.jsx';
 import PensumDetalle from './pages/admin/pensum/PensumDetalle.jsx';
 import PensumArbol from './pages/admin/pensum/PensumArbol.jsx';
+import GestionCursos from './pages/admin/GestionCursos.jsx';
 
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/login" replace /> },
@@ -86,6 +87,14 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  {
+  path: '/admin/cursos',
+  element: (
+    <ProtectedRoute roles={['Administrador']}>
+      <GestionCursos />
+    </ProtectedRoute>
+  ),
+}
 ]);
 
 

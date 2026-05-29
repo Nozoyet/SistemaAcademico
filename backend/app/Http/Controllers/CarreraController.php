@@ -101,4 +101,20 @@ class CarreraController extends Controller
             'message' => 'Carrera eliminada correctamente',
         ]);
     }
+
+    public function pensumActivo($id)
+{
+    $carrera = Carrera::where('estadoA', 1)->find($id);
+    if (!$carrera) return response()->json(['success' => false, 'message' => 'Carrera no encontrada'], 404);
+
+    $pensum = \App\Models\Pensum::with([
+        'materias' => function ($q) {
+            $q->where('estadoA', 1)->with('prerrequisito')->orderBy('semestre');
+        }
+    ])->where('idCarrera', $id)->where('estadoA', 1)->latest('anioCreacion')->first();
+
+    if (!$pensum) return response()->json(['success' => false, 'message' => 'No hay pensum activo para esta carrera'], 404);
+
+    return response()->json(['success' => true, 'data' => $pensum]);
+}
 }
