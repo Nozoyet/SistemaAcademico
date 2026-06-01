@@ -9,6 +9,8 @@ import PensumForm from './pages/admin/pensum/PensumForm.jsx';
 import PensumDetalle from './pages/admin/pensum/PensumDetalle.jsx';
 import PensumArbol from './pages/admin/pensum/PensumArbol.jsx';
 import GestionCursos from './pages/admin/GestionCursos.jsx';
+import CursosDisponibles from './pages/estudiante/CursosDisponibles.jsx';
+import MisInscripciones from './pages/estudiante/MisInscripciones.jsx';
 
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/login" replace /> },
@@ -94,7 +96,9 @@ const router = createBrowserRouter([
       <GestionCursos />
     </ProtectedRoute>
   ),
-}
+},
+{ path: '/estudiante/cursos', element: <ProtectedRoute roles={['Estudiante']}><CursosDisponibles /></ProtectedRoute> },
+{ path: '/estudiante/inscripciones', element: <ProtectedRoute roles={['Estudiante']}><MisInscripciones /></ProtectedRoute> },
 ]);
 
 

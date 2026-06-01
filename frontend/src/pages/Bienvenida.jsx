@@ -54,9 +54,10 @@ const ROL_CONFIG = {
     greeting: "Portal Estudiantil",
     desc: "Consulta cursos disponibles, tus inscripciones y el progreso en tu carrera.",
     links: [
-      { label: "Cursos disponibles", href: "/estudiante/cursos", icon: "🔍" },
-      { label: "Mis inscripciones", href: "/estudiante/inscripciones", icon: "📋" },
-      { label: "Mi pensum", href: "/estudiante/pensum", icon: "🗺️" },
+      { label: "Mis Cursos", href: "/estudiante/inscripciones", icon: "📋" },
+      { label: "Registro de Materia", href: "/estudiante/cursos", icon: "🔍" },
+      { label: "Generar Reportes", href: "/estudiante/reportes", icon: "📊" },
+      { label: "Mi Perfil", href: "/estudiante/perfil", icon: "👤" },
     ],
   },
 };

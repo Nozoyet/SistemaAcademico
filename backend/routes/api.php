@@ -9,6 +9,7 @@ use App\Http\Controllers\CarreraController;
 use App\Http\Controllers\MateriaController;
 use App\Http\Controllers\PeriodoAcademicoController;
 use App\Http\Controllers\CursoController;
+use App\Http\Controllers\InscripcionController;
 
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
@@ -63,8 +64,15 @@ Route::get('/docentes', function () {
         ]);
     return response()->json(['success' => true, 'data' => $docentes]);
 })->middleware('auth:sanctum');
-    
+
+Route::get('/inscripciones/disponibles', [InscripcionController::class, 'disponibles']);
+Route::post('/inscripciones',            [InscripcionController::class, 'store']);
+Route::get('/inscripciones/mis',         [InscripcionController::class, 'misInscripciones']);
+Route::get('/inscripciones/historial', [InscripcionController::class, 'historial']);
+
 });
+
+// Inscripciones (estudiante)
 
 Route::middleware(['auth:sanctum', 'admin'])->prefix('reportes')->group(function () {
     Route::get('carreras', [ReporteController::class, 'carreras']);
