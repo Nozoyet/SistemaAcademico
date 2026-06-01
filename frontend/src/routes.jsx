@@ -14,6 +14,8 @@ import MisInscripciones from './pages/estudiante/MisInscripciones.jsx';
 import GestionCursos from './pages/admin/GestionCursos.jsx';
 import ConsultarCursos from './pages/admin/ConsultarCursos.jsx'; 
 
+import Perfil from './pages/Perfil.jsx';
+
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/login" replace /> },
   { path: '/login', element: <Login /> },
@@ -109,7 +111,12 @@ const router = createBrowserRouter([
 },
 { path: '/estudiante/cursos', element: <ProtectedRoute roles={['Estudiante']}><CursosDisponibles /></ProtectedRoute> },
 { path: '/estudiante/inscripciones', element: <ProtectedRoute roles={['Estudiante']}><MisInscripciones /></ProtectedRoute> },
-]);
 
+// dentro del router, agregar estas 3:
+{ path: '/admin/perfil',      element: <ProtectedRoute roles={['Administrador']}><Perfil /></ProtectedRoute> },
+{ path: '/docente/perfil',    element: <ProtectedRoute roles={['Docente']}><Perfil /></ProtectedRoute> },
+{ path: '/estudiante/perfil', element: <ProtectedRoute roles={['Estudiante']}><Perfil /></ProtectedRoute> },
+
+]);
 
 export default router;

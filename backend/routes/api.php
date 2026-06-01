@@ -24,13 +24,16 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    // Gestión de usuarios (RF09 - solo Administrador)
+    // Gestión de usuarios
     Route::prefix('usuarios')->group(function () {
-        Route::get('/',           [UsuarioController::class, 'index']);        // Listar usuarios
-        Route::post('/',          [UsuarioController::class, 'store']);        // Crear usuario
-        Route::delete('/{id}',    [UsuarioController::class, 'destroy']);      // Eliminar usuario
-        Route::put('/{id}/rol',   [UsuarioController::class, 'asignarRol']);   // Asignar rol
+        Route::get('/',           [UsuarioController::class, 'index']);
+        Route::post('/',          [UsuarioController::class, 'store']);
+        Route::delete('/{id}',    [UsuarioController::class, 'destroy']);
+        Route::put('/{id}/rol',   [UsuarioController::class, 'asignarRol']);
     });
+
+    // PERFIL
+    Route::put('/perfil', [UsuarioController::class, 'actualizarPerfil']);
 
     Route::apiResource('pensum', PensumController::class)->only(['index', 'store', 'show', 'destroy']);
     Route::post('pensum/{id}/copiar-materias/{sourceId}', [PensumController::class, 'copiarMaterias']);

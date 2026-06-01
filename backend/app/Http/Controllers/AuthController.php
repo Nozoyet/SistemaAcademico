@@ -36,12 +36,15 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'token'   => $token,
-            'user'    => [
-                'id'       => $usuario->id,
-                'nombre'   => trim("{$usuario->nombre1} {$usuario->apellidoP}"),
-                'email'    => $usuario->email,
-                'rol'      => $usuario->rol,
-                'username' => $usuario->nombreUsuario,
+                'user' => [
+                'id'            => $usuario->id,
+                'nombre'        => trim("{$usuario->nombre1} {$usuario->apellidoP}"),
+                'nombre1'       => $usuario->nombre1,
+                'apellidoP'     => $usuario->apellidoP,
+                'email'         => $usuario->email,
+                'rol'           => $usuario->rol,
+                'username'      => $usuario->nombreUsuario,
+                'nombreUsuario' => $usuario->nombreUsuario,
             ],
         ]);
     }
