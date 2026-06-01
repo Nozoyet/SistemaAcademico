@@ -9,16 +9,16 @@ const ROL_CONFIG = {
     accent: "#ede9fe",
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M12 2a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4z"/>
-        <path d="M20 21v-1a6 6 0 0 0-6-6H10a6 6 0 0 0-6 6v1"/>
-        <path d="M16 11h6M19 8v6"/>
+        <path d="M12 2a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4z" />
+        <path d="M20 21v-1a6 6 0 0 0-6-6H10a6 6 0 0 0-6 6v1" />
+        <path d="M16 11h6M19 8v6" />
       </svg>
     ),
     greeting: "Panel de Administración",
     desc: "Gestiona carreras, cursos, usuarios y toda la configuración del sistema académico.",
     links: [
-      { 
-        label: "Gestionar Oferta Académica", 
+      {
+        label: "Gestionar Oferta Académica",
         icon: "📚",
         // Estructura interna para habilitar el despliegue dinámico
         subLinks: [
@@ -38,8 +38,8 @@ const ROL_CONFIG = {
     accent: "#e0f2fe",
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
       </svg>
     ),
     greeting: "Portal Docente",
@@ -56,8 +56,8 @@ const ROL_CONFIG = {
     accent: "#ccfbf1",
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+        <path d="M6 12v5c3 3 9 3 12 0v-5" />
       </svg>
     ),
     greeting: "Portal Estudiantil",
@@ -74,7 +74,7 @@ const ROL_CONFIG = {
 export default function Bienvenida() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  
+
   // Estado para alternar el menú desplegable de cursos
   const [showCursosMenu, setShowCursosMenu] = useState(false);
 
@@ -93,17 +93,17 @@ export default function Bienvenida() {
       <header style={styles.header}>
         <div style={styles.headerBrand}>
           <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
-            <rect width="48" height="48" rx="10" fill={config.color} fillOpacity=".12"/>
-            <path d="M12 34L24 14L36 34H12Z" stroke={config.color} strokeWidth="2.2" strokeLinejoin="round" fill="none"/>
-            <circle cx="24" cy="24" r="3.5" fill={config.color} fillOpacity=".7"/>
+            <rect width="48" height="48" rx="10" fill={config.color} fillOpacity=".12" />
+            <path d="M12 34L24 14L36 34H12Z" stroke={config.color} strokeWidth="2.2" strokeLinejoin="round" fill="none" />
+            <circle cx="24" cy="24" r="3.5" fill={config.color} fillOpacity=".7" />
           </svg>
           <span style={{ ...styles.headerTitle, color: config.color }}>Sistema Académico</span>
         </div>
         <button onClick={handleLogout} style={styles.logoutBtn}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
           Cerrar sesión
         </button>
@@ -126,7 +126,7 @@ export default function Bienvenida() {
           {/* Quick links */}
           <div style={styles.linksGrid}>
             {config.links.map((link, index) => {
-              
+
               // Renderizado condicional si el botón posee sub-enlaces
               if (link.subLinks) {
                 return (
@@ -140,11 +140,11 @@ export default function Bienvenida() {
                       <span style={styles.linkEmoji}>{link.icon}</span>
                       <span style={styles.linkLabel}>{link.label}</span>
                       {/* La flecha rota 90 grados si el menú está activo */}
-                      <svg 
-                        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={config.color} strokeWidth="2.5" 
+                      <svg
+                        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={config.color} strokeWidth="2.5"
                         style={{ marginLeft: "auto", flexShrink: 0, transform: showCursosMenu ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}
                       >
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                        <path d="M5 12h14M12 5l7 7-7 7" />
                       </svg>
                     </button>
 
@@ -160,7 +160,7 @@ export default function Bienvenida() {
                         <span style={styles.linkEmoji}>{subLink.icon}</span>
                         <span style={{ ...styles.linkLabel, fontSize: "0.85rem" }}>{subLink.label}</span>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={config.color} strokeWidth="2.5" style={{ marginLeft: "auto" }}>
-                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                          <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
                       </button>
                     ))}
@@ -180,7 +180,7 @@ export default function Bienvenida() {
                   <span style={styles.linkEmoji}>{link.icon}</span>
                   <span style={styles.linkLabel}>{link.label}</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={config.color} strokeWidth="2.5" style={{ marginLeft: "auto", flexShrink: 0 }}>
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                    <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </button>
               );
@@ -240,7 +240,7 @@ const styles = {
     fontSize: "0.84rem",
     fontWeight: 500,
     cursor: "pointer",
-  },  main: {
+  }, main: {
     maxWidth: 680,
     margin: "0 auto",
     padding: "3rem 1.5rem 2rem",
@@ -291,7 +291,7 @@ const styles = {
     textAlign: "left",
     transition: "border-color .15s, background .15s",
     width: "100%",
-  },  linkEmoji: { fontSize: "1.15rem", flexShrink: 0 },
+  }, linkEmoji: { fontSize: "1.15rem", flexShrink: 0 },
   linkLabel: { fontSize: "0.9rem", fontWeight: 500, color: "#1e293b" },
   infoStrip: {
     background: "white",

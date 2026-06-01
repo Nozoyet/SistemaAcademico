@@ -9,91 +9,114 @@ const ADMIN_CONFIG = {
   accent: '#ede9fe',
 };
 
-const SEMESTRES = [1, 2, 3, 4, 5, 6];
-
-export default function Reportes() {
+export default function ReportesEstudiantes() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+
   const [carreras, setCarreras] = useState([]);
-  const [carreraSeleccionada, setCarreraSeleccionada] = useState('');
-  const [gestiones, setGestiones] = useState([]);
-  const [gestionId, setGestionId] = useState('');
-  const [semestre, setSemestre] = useState('');
-  const [materias, setMaterias] = useState([]);
+  const [carreraId, setCarreraId] = useState('');
+  const [periodos, setPeriodos] = useState([]);
+  const [periodoId, setPeriodoId] = useState('');
+  const [cursos, setCursos] = useState([]);
+  const [cursoId, setCursoId] = useState('');
+
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [generado, setGenerado] = useState(false);
+  const [error, setError] = useState('');
+
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(''); // 'pdf' | 'excel'
-
-  const carreraActiva = carreras.find((c) => c.id == carreraSeleccionada);
-  const gestionActiva = gestiones.find((g) => g.id == gestionId);
+  const [modalType, setModalType] = useState('');
 
   useEffect(() => {
     cargarCarreras();
   }, []);
 
   useEffect(() => {
-    if (carreraSeleccionada) {
-      cargarGestiones(carreraSeleccionada);
-      setGestionId('');
-      setSemestre('');
+    if (carreraId) {
+      cargarPeriodos(carreraId);
+      setPeriodoId('');
+      setCursoId('');
+      setCursos([]);
     }
-  }, [carreraSeleccionada]);
+  }, [carreraId]);
+
+  useEffect(() => {
+    if (periodoId) {
+      cargarCursos(periodoId);
+      setCursoId('');
+    }
+  }, [periodoId]);
 
   const cargarCarreras = async () => {
     try {
-      setLoading(true);
       const data = await reporteService.obtenerCarreras();
       setCarreras(data);
-      setError('');
       if (data && data.length > 0) {
-        setCarreraSeleccionada(data[0].id);
+        setCarreraId(data[0].id);
       }
     } catch (err) {
       setError('Error al cargar carreras: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const cargarPeriodos = async (id) => {
+    try {
+      const data = await reporteService.obtenerPeriodos(id);
+      setPeriodos(data);
+      if (data && data.length > 0) {
+        setPeriodoId(data[0].id);
+      }
+    } catch (err) {
+      setError('Error al cargar periodos: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const cargarCursos = async (id) => {
+    try {
+      const data = await reporteService.obtenerCursos(id);
+      setCursos(data);
+    } catch (err) {
+      setError('Error al cargar cursos: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const buscar = async () => {
+    if (!carreraId) {
+      setError('Selecciona una carrera');
+      return;
+    }
+    if (!periodoId) {
+      setError('Selecciona un periodo');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+      const result = await reporteService.obtenerReporteEstudiantes({
+        carrera_id: carreraId,
+        periodo_id: periodoId,
+        curso_id: cursoId || undefined,
+        fecha_inicio: fechaInicio || undefined,
+        fecha_fin: fechaFin || undefined,
+      });
+      setData(result);
+      setGenerado(true);
+    } catch (err) {
+      setError('Error al generar reporte: ' + (err.response?.data?.error || err.message));
+      setGenerado(false);
     } finally {
       setLoading(false);
     }
   };
 
-  const cargarGestiones = async (id) => {
-    try {
-      const data = await reporteService.obtenerGestiones(id);
-      setGestiones(data);
-      if (data && data.length > 0) {
-        setGestionId(data[0].id);
-      }
-    } catch (err) {
-      setError('Error al cargar gestiones: ' + (err.response?.data?.error || err.message));
-    }
-  };
-
-  const cargarMateriasPorCarrera = async (id, sem) => {
-    try {
-      const data = await reporteService.obtenerMateriasPorCarrera(id, sem || undefined);
-      setMaterias(data);
-      setGenerado(true);
-      setError('');
-    } catch (err) {
-      setError('Error al generar reporte: ' + (err.response?.data?.error || err.message));
-      setGenerado(false);
-    }
-  };
-
-  const generarReporte = async () => {
-    if (!carreraSeleccionada) {
-      setError('Por favor selecciona una carrera');
-      return;
-    }
-    await cargarMateriasPorCarrera(carreraSeleccionada, semestre);
-  };
-
-  // Modal handlers
   const abrirModal = (type) => {
-    if (materias.length === 0) return;
+    if (data.length === 0) return;
     setModalType(type);
     setShowModal(true);
   };
@@ -102,9 +125,21 @@ export default function Reportes() {
     setShowModal(false);
     try {
       if (modalType === 'pdf') {
-        await reporteService.exportarPDF(carreraSeleccionada);
+        await reporteService.exportarPDFEstudiantes({
+          carrera_id: carreraId,
+          periodo_id: periodoId,
+          curso_id: cursoId || undefined,
+          fecha_inicio: fechaInicio || undefined,
+          fecha_fin: fechaFin || undefined,
+        });
       } else {
-        await reporteService.exportarExcel(carreraSeleccionada);
+        await reporteService.exportarExcelEstudiantes({
+          carrera_id: carreraId,
+          periodo_id: periodoId,
+          curso_id: cursoId || undefined,
+          fecha_inicio: fechaInicio || undefined,
+          fecha_fin: fechaFin || undefined,
+        });
       }
     } catch (err) {
       setError('Error al descargar: ' + (err.response?.data?.error || err.message));
@@ -148,15 +183,15 @@ export default function Reportes() {
       <main style={styles.main}>
         <div style={{ ...styles.heroCard, borderTop: `4px solid ${ADMIN_CONFIG.color}` }}>
           <div style={{ ...styles.roleChip, background: ADMIN_CONFIG.accent, color: ADMIN_CONFIG.color }}>
-            <span style={{ display: 'flex' }}>📊</span>
-            Reporte de Materias
+            <span style={{ display: 'flex' }}>👨‍🎓</span>
+            Reporte de Estudiantes
           </div>
 
           <h1 style={styles.heroTitle}>
-            Reportes por <span style={{ color: ADMIN_CONFIG.color }}>Carrera</span>
+            Reportes de <span style={{ color: ADMIN_CONFIG.color }}>Estudiantes</span>
           </h1>
           <p style={styles.heroDesc}>
-            Consulta todas las materias disponibles en cada carrera. Incluye información sobre créditos y semestres.
+            Consulta estudiantes inscritos, notas y avance académico por carrera, gestión y curso.
           </p>
 
           {error && (
@@ -174,113 +209,103 @@ export default function Reportes() {
             <div style={styles.filterRow}>
               <div style={styles.filterGroup}>
                 <label style={styles.filterLabel}>Carrera</label>
-                <select
-                  value={carreraSeleccionada}
-                  onChange={(e) => {
-                    setCarreraSeleccionada(e.target.value);
-                    if (e.target.value) {
-                      cargarGestiones(e.target.value);
-                    }
-                  }}
-                  style={styles.filterSelect}
-                  disabled={loading || carreras.length === 0}
-                >
-                  <option value="">-- Seleccionar carrera --</option>
-                  {carreras.map((carrera) => (
-                    <option key={carrera.id} value={carrera.id}>
-                      {carrera.nombre}
-                    </option>
+                <select value={carreraId} onChange={(e) => setCarreraId(e.target.value)} style={styles.filterSelect}>
+                  <option value="">-- Seleccionar --</option>
+                  {carreras.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nombre}</option>
                   ))}
                 </select>
               </div>
 
               <div style={styles.filterGroup}>
-                <label style={styles.filterLabel}>Gestión Académica</label>
-                <select
-                  value={gestionId}
-                  onChange={(e) => setGestionId(e.target.value)}
-                  style={styles.filterSelect}
-                  disabled={!carreraSeleccionada || gestiones.length === 0}
-                >
-                  <option value="">-- Seleccionar gestión --</option>
-                  {gestiones.map((g) => (
-                    <option key={g.id} value={g.id}>{g.label}</option>
+                <label style={styles.filterLabel}>Gestión / Periodo</label>
+                <select value={periodoId} onChange={(e) => setPeriodoId(e.target.value)} style={styles.filterSelect} disabled={!carreraId}>
+                  <option value="">-- Seleccionar --</option>
+                  {periodos.map((p) => (
+                    <option key={p.id} value={p.id}>{p.codigo}</option>
                   ))}
                 </select>
               </div>
 
               <div style={styles.filterGroup}>
-                <label style={styles.filterLabel}>Periodo / Semestre</label>
-                <select
-                  value={semestre}
-                  onChange={(e) => setSemestre(e.target.value)}
-                  style={styles.filterSelect}
-                >
-                  <option value="">Todos los semestres</option>
-                  {SEMESTRES.map((s) => (
-                    <option key={s} value={s}>{s}° Semestre</option>
+                <label style={styles.filterLabel}>Curso</label>
+                <select value={cursoId} onChange={(e) => setCursoId(e.target.value)} style={styles.filterSelect} disabled={!periodoId}>
+                  <option value="">Todos los cursos</option>
+                  {cursos.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nombre}</option>
                   ))}
                 </select>
               </div>
+            </div>
 
+            <div style={styles.filterRow}>
               <div style={styles.filterGroup}>
-                <label style={{ ...styles.filterLabel, visibility: 'hidden' }}>Actualizar</label>
+                <label style={styles.filterLabel}>Fecha inicio</label>
+                <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} style={styles.filterSelect} />
+              </div>
+              <div style={styles.filterGroup}>
+                <label style={styles.filterLabel}>Fecha fin</label>
+                <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} style={styles.filterSelect} />
+              </div>
+              <div style={styles.filterGroup}>
+                <label style={{ ...styles.filterLabel, visibility: 'hidden' }}>Buscar</label>
                 <button
-                  onClick={generarReporte}
-                  disabled={!carreraSeleccionada || loading}
+                  onClick={buscar}
+                  disabled={!carreraId || !periodoId || loading}
                   style={{
                     ...styles.searchBtn,
-                    opacity: !carreraSeleccionada || loading ? 0.5 : 1,
-                    cursor: !carreraSeleccionada || loading ? 'not-allowed' : 'pointer',
+                    opacity: !carreraId || !periodoId || loading ? 0.5 : 1,
+                    cursor: !carreraId || !periodoId || loading ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {loading ? 'Cargando...' : 'Actualizar'}
+                  {loading ? 'Buscando...' : 'Buscar'}
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        {generado && materias.length > 0 && (
+        {generado && data.length > 0 && (
           <div style={styles.resultsCard}>
             <div style={styles.resultsHeader}>
-              <h2 style={styles.resultsTitle}>Materias de la carrera</h2>
+              <h2 style={styles.resultsTitle}>Resultados de estudiantes</h2>
               <div style={styles.statsBadges}>
                 <div style={styles.statBadge}>
                   <span style={styles.statLabel}>Total</span>
-                  <span style={styles.statValue}>{materias.length}</span>
-                </div>
-                <div style={styles.statBadge}>
-                  <span style={styles.statLabel}>Créditos</span>
-                  <span style={styles.statValue}>{materias.reduce((sum, m) => sum + m.creditos, 0)}</span>
+                  <span style={styles.statValue}>{data.length}</span>
                 </div>
               </div>
-            </div>
-
-            <div style={styles.reportMeta}>
-              <span style={styles.reportMetaItem}><strong>Código:</strong> {carreraActiva?.codigo || '-'}</span>
-              <span style={styles.reportMetaItem}><strong>Nombre Carrera:</strong> {carreraActiva?.nombre || '-'}</span>
-              <span style={styles.reportMetaItem}><strong>Modalidad:</strong> {carreraActiva?.modalidad || '-'}</span>
-              {gestionActiva && <span style={styles.reportMetaItem}><strong>Gestión:</strong> {gestionActiva.label}</span>}
             </div>
 
             <div style={styles.tableWrapper}>
               <table style={styles.table}>
                 <thead>
                   <tr style={styles.tableHead}>
-                    <th style={{ ...styles.tableHeaderCell, width: '12%' }}>Código</th>
-                    <th style={{ ...styles.tableHeaderCell, width: '48%' }}>Nombre</th>
-                    <th style={{ ...styles.tableHeaderCell, width: '12%', textAlign: 'center' }}>Créditos</th>
-                    <th style={{ ...styles.tableHeaderCell, width: '12%', textAlign: 'center' }}>Semestre</th>
+                    <th style={styles.tableHeaderCell}>Matrícula</th>
+                    <th style={styles.tableHeaderCell}>Estudiante</th>
+                    <th style={styles.tableHeaderCell}>Carrera</th>
+                    <th style={styles.tableHeaderCell}>Curso</th>
+                    <th style={{ ...styles.tableHeaderCell, textAlign: 'center' }}>Nota</th>
+                    <th style={{ ...styles.tableHeaderCell, textAlign: 'center' }}>Estado</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {materias.map((materia, idx) => (
-                    <tr key={materia.id} style={{ ...styles.tableRow, background: idx % 2 === 0 ? '#f8fafc' : 'white' }}>
-                      <td style={styles.tableCell}>{materia.codigo}</td>
-                      <td style={styles.tableCell}>{materia.nombre}</td>
-                      <td style={{ ...styles.tableCell, textAlign: 'center' }}>{materia.creditos}</td>
-                      <td style={{ ...styles.tableCell, textAlign: 'center' }}>{materia.semestre}°</td>
+                  {data.map((row, idx) => (
+                    <tr key={row.id} style={{ ...styles.tableRow, background: idx % 2 === 0 ? '#f8fafc' : 'white' }}>
+                      <td style={styles.tableCell}>{row.matricula}</td>
+                      <td style={styles.tableCell}>{row.estudiante}</td>
+                      <td style={styles.tableCell}>{row.carrera}</td>
+                      <td style={styles.tableCell}>{row.curso}</td>
+                      <td style={{ ...styles.tableCell, textAlign: 'center' }}>{row.notaFinal ?? '—'}</td>
+                      <td style={{ ...styles.tableCell, textAlign: 'center' }}>
+                        <span style={{
+                          ...styles.statusBadge,
+                          background: row.estado === 'Activa' ? '#dcfce7' : row.estado === 'Completada' ? '#dbeafe' : '#fef3c7',
+                          color: row.estado === 'Activa' ? '#166534' : row.estado === 'Completada' ? '#1e40af' : '#92400e',
+                        }}>
+                          {row.estado}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -325,21 +350,21 @@ export default function Reportes() {
           </div>
         )}
 
-        {generado && materias.length === 0 && (
+        {generado && data.length === 0 && (
           <div style={styles.emptyStateCard}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
               <path d="M12 2v20M2 12h20" />
             </svg>
             <h3 style={styles.emptyStateTitle}>Sin resultados</h3>
-            <p style={styles.emptyStateDesc}>No hay materias registradas para esta carrera</p>
+            <p style={styles.emptyStateDesc}>No se encontraron estudiantes para los filtros seleccionados.</p>
           </div>
         )}
       </main>
 
       {/* Preview Modal */}
       {showModal && (
-        <div className="modal fade show" style={{ ...modalBackdrop, display: 'block' }} onClick={() => setShowModal(false)}>
-          <div className="modal-dialog modal-lg modal-dialog-centered" style={modalInner} onClick={(e) => e.stopPropagation()}>
+        <div className="modal fade show" style={modalBackdrop} onClick={() => setShowModal(false)}>
+          <div className="modal-dialog modal-xl modal-dialog-centered" style={modalInner} onClick={(e) => e.stopPropagation()}>
             <div className="modal-content" style={modalContent}>
               <div className="modal-header" style={modalHeader}>
                 <h5 className="modal-title" style={modalTitle}>
@@ -354,27 +379,29 @@ export default function Reportes() {
               </div>
               <div className="modal-body" style={{ padding: '1.25rem' }}>
                 <div style={previewInfo}>
-                  <span><strong>Carrera:</strong> {carreraActiva?.nombre || '-'}</span>
-                  <span><strong>Total materias:</strong> {materias.length}</span>
-                  <span><strong>Total créditos:</strong> {materias.reduce((sum, m) => sum + m.creditos, 0)}</span>
+                  <span><strong>Total registros:</strong> {data.length}</span>
                 </div>
-                <div style={{ overflowX: 'auto', marginTop: 12 }}>
-                  <table className="table table-bordered table-hover" style={{ margin: 0, fontSize: '0.85rem' }}>
-                    <thead className="table-light">
+                <div style={{ overflowX: 'auto', marginTop: 12, maxHeight: 400, overflowY: 'auto' }}>
+                  <table className="table table-bordered table-hover" style={{ margin: 0, fontSize: '0.82rem' }}>
+                    <thead className="table-light" style={{ position: 'sticky', top: 0, zIndex: 1 }}>
                       <tr>
-                        <th style={{ width: '12%' }}>Código</th>
-                        <th style={{ width: '50%' }}>Nombre</th>
-                        <th style={{ width: '15%', textAlign: 'center' }}>Créditos</th>
-                        <th style={{ width: '15%', textAlign: 'center' }}>Semestre</th>
+                        <th>Matrícula</th>
+                        <th>Estudiante</th>
+                        <th>Carrera</th>
+                        <th>Curso</th>
+                        <th style={{ textAlign: 'center' }}>Nota</th>
+                        <th style={{ textAlign: 'center' }}>Estado</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {materias.map((m, i) => (
-                        <tr key={m.id}>
-                          <td>{m.codigo}</td>
-                          <td>{m.nombre}</td>
-                          <td style={{ textAlign: 'center' }}>{m.creditos}</td>
-                          <td style={{ textAlign: 'center' }}>{m.semestre}°</td>
+                      {data.map((row, i) => (
+                        <tr key={row.id || i}>
+                          <td>{row.matricula}</td>
+                          <td>{row.estudiante}</td>
+                          <td>{row.carrera}</td>
+                          <td>{row.curso}</td>
+                          <td style={{ textAlign: 'center' }}>{row.notaFinal ?? '—'}</td>
+                          <td style={{ textAlign: 'center' }}>{row.estado}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -382,9 +409,7 @@ export default function Reportes() {
                 </div>
               </div>
               <div className="modal-footer" style={modalFooter}>
-                <button className="btn btn-secondary" onClick={() => setShowModal(false)} style={modalCancelBtn}>
-                  Cancelar
-                </button>
+                <button className="btn btn-secondary" onClick={() => setShowModal(false)} style={modalCancelBtn}>Cancelar</button>
                 <button className="btn" onClick={confirmarDescarga} style={modalConfirmBtn}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -407,7 +432,7 @@ const modalBackdrop = {
   background: 'rgba(0,0,0,0.5)', zIndex: 1050,
   overflowY: 'auto', padding: '30px 15px',
 };
-const modalInner = { margin: '0 auto', maxWidth: 800 };
+const modalInner = { margin: '0 auto', maxWidth: 1000 };
 const modalContent = { border: 'none', borderRadius: 16, boxShadow: '0 20px 60px rgba(0,0,0,0.15)', overflow: 'hidden', background: '#ffffff', color: '#000000' };
 const modalHeader = { borderBottom: '1px solid #e2e8f0', padding: '1rem 1.25rem', background: '#ffffff', color: '#000000' };
 const modalTitle = { fontWeight: 700, fontSize: '1.05rem', color: '#000000', display: 'flex', alignItems: 'center' };
@@ -443,20 +468,19 @@ const styles = {
   statBadge: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '0.6rem 1rem', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' },
   statLabel: { fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase' },
   statValue: { fontSize: '1.25rem', color: '#7c3aed', fontWeight: 700 },
-  reportMeta: { display: 'flex', flexWrap: 'wrap', gap: 12, padding: '1rem 0', color: '#334155', fontSize: '0.95rem' },
-  reportMetaItem: { background: '#f8fafc', padding: '0.9rem 1rem', borderRadius: 12, border: '1px solid #e2e8f0' },
   tableWrapper: { overflowX: 'auto', marginBottom: '1.5rem' },
   table: { width: '100%', borderCollapse: 'collapse' },
   tableHead: { background: '#f8fafc' },
-  tableHeaderCell: { padding: '0.85rem 1rem', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: '#475569', borderBottom: '2px solid #e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  tableHeaderCell: { padding: '0.85rem 1rem', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: '#475569', borderBottom: '2px solid #e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' },
   tableRow: { borderBottom: '1px solid #e2e8f0', transition: 'background .15s' },
   tableCell: { padding: '0.9rem 1rem', fontSize: '0.9rem', color: '#1e293b' },
+  statusBadge: { display: 'inline-block', padding: '0.2rem 0.65rem', borderRadius: 999, fontSize: '0.78rem', fontWeight: 600 },
+  exportSection: { display: 'flex', gap: 12, paddingTop: '1rem', borderTop: '1px solid #e2e8f0' },
   infoStrip: { display: 'flex', alignItems: 'center', gap: 10, padding: '1rem 0', marginBottom: '1rem', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' },
   infoItem: { display: 'flex', flexDirection: 'column', gap: 4, minWidth: 120 },
   infoLabel: { fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' },
   infoVal: { fontSize: '0.95rem', color: '#0f172a', fontWeight: 600 },
   infoSep: { width: 1, height: 28, background: '#cbd5e1' },
-  exportSection: { display: 'flex', gap: 12, paddingTop: '1rem', borderTop: '1px solid #e2e8f0' },
   exportBtn: { display: 'flex', alignItems: 'center', gap: 8, padding: '0.65rem 1.25rem', color: 'white', border: 'none', borderRadius: 10, fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', transition: 'all .15s' },
   emptyStateCard: { background: 'white', borderRadius: 16, padding: '3rem 2rem', boxShadow: '0 2px 16px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' },
   emptyStateTitle: { fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' },

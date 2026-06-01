@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: May 26, 2026 at 05:30 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Servidor: 127.0.0.1
+-- Tiempo de generación: 01-06-2026 a las 06:04:05
+-- Versión del servidor: 10.4.32-MariaDB
+-- Versión de PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,15 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `sistema_academico`
+-- Base de datos: `sistema_academico`
 --
-CREATE DATABASE IF NOT EXISTS `sistema_academico` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `sistema_academico`;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `cache`
+-- Estructura de tabla para la tabla `cache`
 --
 
 CREATE TABLE `cache` (
@@ -38,7 +36,7 @@ CREATE TABLE `cache` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `cache_locks`
+-- Estructura de tabla para la tabla `cache_locks`
 --
 
 CREATE TABLE `cache_locks` (
@@ -50,7 +48,7 @@ CREATE TABLE `cache_locks` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `carrera`
+-- Estructura de tabla para la tabla `carrera`
 --
 
 CREATE TABLE `carrera` (
@@ -66,7 +64,7 @@ CREATE TABLE `carrera` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `carrera`
+-- Volcado de datos para la tabla `carrera`
 --
 
 INSERT INTO `carrera` (`id`, `codigo`, `nombre`, `descripcion`, `estado`, `idModalidad`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
@@ -75,7 +73,7 @@ INSERT INTO `carrera` (`id`, `codigo`, `nombre`, `descripcion`, `estado`, `idMod
 -- --------------------------------------------------------
 
 --
--- Table structure for table `curso`
+-- Estructura de tabla para la tabla `curso`
 --
 
 CREATE TABLE `curso` (
@@ -92,10 +90,17 @@ CREATE TABLE `curso` (
   `estadoA` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `curso`
+--
+
+INSERT INTO `curso` (`id`, `codigoGrupo`, `idMateria`, `idPeriodoAcademico`, `idDocente`, `cupoMaximo`, `cupoActual`, `estado`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
+(1, '01', 1, 1, 2, 45, 0, 1, '1', '2026-05-31 19:23:41', 1);
+
 -- --------------------------------------------------------
 
 --
--- Table structure for table `docente`
+-- Estructura de tabla para la tabla `docente`
 --
 
 CREATE TABLE `docente` (
@@ -108,16 +113,26 @@ CREATE TABLE `docente` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `docente`
+-- Volcado de datos para la tabla `docente`
 --
 
 INSERT INTO `docente` (`idUsuario`, `especialidad`, `telefono`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
-(2, 'Chef Ejecutivo - Cocina Internacional', '76543210', '1', '2026-05-25 18:45:40', 1);
+(2, 'Chef Ejecutivo - Cocina Internacional', '76543210', '1', '2026-05-25 18:45:40', 1),
+(4, 'Chef Ejecutivo - Cocina Internacional', '71543210', 'adminp', '2026-05-28 21:25:33', 1),
+(5, 'Panadería y Pastelería Artística', '72214567', 'adminp', '2026-05-28 21:25:33', 1),
+(6, 'Enología y Maridaje', '73339876', 'adminp', '2026-05-28 21:25:33', 1),
+(7, 'Garde Manger y Cocina Fría', '74445678', 'adminp', '2026-05-28 21:25:33', 1),
+(8, 'Gestión y Emprendimiento Gastronómico', '75556789', 'adminp', '2026-05-28 21:25:33', 1),
+(9, 'Técnicas Avanzadas de Cocina', '76667890', 'adminp', '2026-05-28 21:25:33', 1),
+(10, 'Sostenibilidad y Cocina Ecológica', '77778901', 'adminp', '2026-05-28 21:25:33', 1),
+(11, 'Servicio y Protocolo Profesional', '78889012', 'adminp', '2026-05-28 21:25:33', 1),
+(12, 'Marketing y Comunicación Gastronómica', '79990123', 'adminp', '2026-05-28 21:25:33', 1),
+(13, 'Pastelería Francesa y Repostería Moderna', '71111234', 'adminp', '2026-05-28 21:25:33', 1);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `estudiante`
+-- Estructura de tabla para la tabla `estudiante`
 --
 
 CREATE TABLE `estudiante` (
@@ -133,7 +148,7 @@ CREATE TABLE `estudiante` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `estudiante`
+-- Volcado de datos para la tabla `estudiante`
 --
 
 INSERT INTO `estudiante` (`idUsuario`, `matricula`, `telefono`, `fechaNac`, `fechaInscripcion`, `idCarrera`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
@@ -142,7 +157,7 @@ INSERT INTO `estudiante` (`idUsuario`, `matricula`, `telefono`, `fechaNac`, `fec
 -- --------------------------------------------------------
 
 --
--- Table structure for table `failed_jobs`
+-- Estructura de tabla para la tabla `failed_jobs`
 --
 
 CREATE TABLE `failed_jobs` (
@@ -158,7 +173,26 @@ CREATE TABLE `failed_jobs` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `horario`
+-- Estructura de tabla para la tabla `historialacademico`
+--
+
+CREATE TABLE `historialacademico` (
+  `id` int(11) NOT NULL,
+  `idEstudiante` int(11) NOT NULL,
+  `idMateria` int(11) NOT NULL,
+  `idPeriodoAcademico` int(11) NOT NULL,
+  `idInscripcion` int(11) DEFAULT NULL,
+  `notaFinal` float DEFAULT NULL,
+  `estado` enum('Aprobado','Reprobado','Retirado') NOT NULL,
+  `usuarioA` varchar(50) NOT NULL,
+  `fechaHoraA` datetime DEFAULT current_timestamp(),
+  `estadoA` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `horario`
 --
 
 CREATE TABLE `horario` (
@@ -175,10 +209,17 @@ CREATE TABLE `horario` (
   `estadoA` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `horario`
+--
+
+INSERT INTO `horario` (`id`, `idCurso`, `diaSemana`, `horaInicio`, `horaFin`, `aula`, `edificio`, `turno`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
+(1, 1, 'Lunes', '08:30:00', '11:45:00', '101', 'BLOQUE A', 'Mañana', '1', '2026-05-31 19:23:41', 1);
+
 -- --------------------------------------------------------
 
 --
--- Table structure for table `inscripcion`
+-- Estructura de tabla para la tabla `inscripcion`
 --
 
 CREATE TABLE `inscripcion` (
@@ -186,7 +227,6 @@ CREATE TABLE `inscripcion` (
   `idEstudiante` int(11) NOT NULL,
   `idCurso` int(11) NOT NULL,
   `fechaInscripcion` datetime DEFAULT current_timestamp(),
-  `notaFinal` float DEFAULT NULL,
   `estado` enum('Activa','Completada','Cancelada') DEFAULT 'Activa',
   `usuarioA` varchar(50) NOT NULL,
   `fechaHoraA` datetime DEFAULT current_timestamp(),
@@ -196,7 +236,7 @@ CREATE TABLE `inscripcion` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `jobs`
+-- Estructura de tabla para la tabla `jobs`
 --
 
 CREATE TABLE `jobs` (
@@ -212,7 +252,7 @@ CREATE TABLE `jobs` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `job_batches`
+-- Estructura de tabla para la tabla `job_batches`
 --
 
 CREATE TABLE `job_batches` (
@@ -231,7 +271,7 @@ CREATE TABLE `job_batches` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `materia`
+-- Estructura de tabla para la tabla `materia`
 --
 
 CREATE TABLE `materia` (
@@ -243,45 +283,51 @@ CREATE TABLE `materia` (
   `idPrerequisito` int(11) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT 1,
   `idPensum` int(11) DEFAULT NULL,
+  `semestre` int(11) NOT NULL,
+  `esElectiva` tinyint(1) DEFAULT 0,
   `usuarioA` varchar(50) NOT NULL,
   `fechaHoraA` datetime DEFAULT current_timestamp(),
   `estadoA` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `materia`
+-- Volcado de datos para la tabla `materia`
 --
 
-INSERT INTO `materia` (`id`, `codigo`, `nombre`, `creditos`, `descripcion`, `idPrerequisito`, `estado`, `idPensum`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
-(1, 'GAST101', 'Introducción a la Gastronomía', 4, 'Historia, conceptos básicos y panorama de la profesión', NULL, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(2, 'GAST102', 'Técnicas Básicas de Cocina', 5, 'Cortes, métodos de cocción y mise en place', NULL, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(3, 'GAST103', 'Higiene y Seguridad Alimentaria', 3, 'Normas sanitarias y manipulación de alimentos', NULL, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(4, 'GAST104', 'Arroz Básico', 3, 'Técnicas de cocción de arroz básicas', NULL, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(5, 'GAST201', 'Arroz I', 5, 'Arroces de Europa y América', 4, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(6, 'GAST202', 'Panadería y Pastelería Básica', 4, 'Fundamentos de masas y repostería', 2, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(7, 'GAST203', 'Pollo al Horno I', 3, 'Principios nutricionales del pollo', NULL, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(8, 'GAST204', 'Postres I', 3, 'Dulces', NULL, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(9, 'GAST301', 'Arroz II', 5, 'Arroz de Asia', 5, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(10, 'GAST302', 'Garde Manger y Entradas Frías', 4, 'Técnicas de preparación en frío', 2, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(11, 'GAST303', 'Enología y Maridaje', 3, 'Vinos y armonización con platos', NULL, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(12, 'GAST304', 'Pollo al Horno II', 3, 'Uso de equipos y nuevas tecnologías', 7, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(13, 'GAST401', 'Arroz III', 5, 'Arroz mágico', 9, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(14, 'GAST402', 'Pastelería Avanzada', 4, 'Técnicas modernas de repostería', 6, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(15, 'GAST403', 'Postres II', 4, 'Diabetes', 8, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(16, 'GAST404', 'Sostenibilidad y Cocina Ecológica', 3, 'Prácticas sostenibles en gastronomía', NULL, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(17, 'GAST501', 'Pollo al Horno III', 5, 'Innovación gastronómica', 12, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(18, 'GAST502', 'Emprendimiento Gastronómico', 4, 'Creación y gestión de negocios', 11, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(19, 'GAST503', 'Servicio y Protocolo', 3, 'Atención al cliente y sommeliería', NULL, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(20, 'GAST504', 'Prácticas Profesionales I', 4, 'Experiencia en cocina real', 9, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(21, 'GAST601', 'Proyecto Final de Grado', 6, 'Desarrollo de menú completo y tesis', 13, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(22, 'GAST602', 'Prácticas Profesionales II', 6, 'Pasantía avanzada', 13, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(23, 'GAST603', 'Marketing Gastronómico', 3, 'Estrategias de promoción', 11, 1, 1, '1', '2026-05-25 18:39:24', 1),
-(24, 'GAST604', 'Legislación y Normativa Alimentaria', 3, 'Aspectos legales del sector', NULL, 1, 1, '1', '2026-05-25 18:39:24', 1);
+INSERT INTO `materia` (`id`, `codigo`, `nombre`, `creditos`, `descripcion`, `idPrerequisito`, `estado`, `idPensum`, `semestre`, `esElectiva`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
+(1, 'GAST101', 'Introducción a la Gastronomía', 4, 'Historia, conceptos básicos y panorama de la profesión', NULL, 1, 1, 1, 0, '1', '2026-05-25 18:39:24', 1),
+(2, 'GAST102', 'Técnicas Básicas de Cocina', 5, 'Cortes, métodos de cocción y mise en place', NULL, 1, 1, 1, 0, '1', '2026-05-25 18:39:24', 1),
+(3, 'GAST103', 'Higiene y Seguridad Alimentaria', 3, 'Normas sanitarias y manipulación de alimentos', NULL, 1, 1, 1, 0, '1', '2026-05-25 18:39:24', 1),
+(4, 'GAST104', 'Arroz Básico', 3, 'Técnicas de cocción de arroz básicas', NULL, 1, 1, 1, 0, '1', '2026-05-25 18:39:24', 1),
+(5, 'GAST201', 'Arroz I', 5, 'Arroces de Europa y América', 4, 1, 1, 2, 0, '1', '2026-05-25 18:39:24', 1),
+(6, 'GAST202', 'Panadería y Pastelería Básica', 4, 'Fundamentos de masas y repostería', 2, 1, 1, 2, 0, '1', '2026-05-25 18:39:24', 1),
+(7, 'GAST203', 'Pollo al Horno I', 3, 'Principios nutricionales del pollo', NULL, 1, 1, 2, 0, '1', '2026-05-25 18:39:24', 1),
+(8, 'GAST204', 'Postres I', 3, 'Dulces', NULL, 1, 1, 2, 0, '1', '2026-05-25 18:39:24', 1),
+(9, 'GAST301', 'Arroz II', 5, 'Arroz de Asia', 5, 1, 1, 3, 0, '1', '2026-05-25 18:39:24', 1),
+(10, 'GAST302', 'Garde Manger y Entradas Frías', 4, 'Técnicas de preparación en frío', 2, 1, 1, 3, 0, '1', '2026-05-25 18:39:24', 1),
+(11, 'GAST303', 'Enología y Maridaje', 3, 'Vinos y armonización con platos', NULL, 1, 1, 3, 0, '1', '2026-05-25 18:39:24', 1),
+(12, 'GAST304', 'Pollo al Horno II', 3, 'Uso de equipos y nuevas tecnologías', 7, 1, 1, 3, 0, '1', '2026-05-25 18:39:24', 1),
+(13, 'GAST401', 'Arroz III', 5, 'Arroz mágico', 9, 1, 1, 4, 0, '1', '2026-05-25 18:39:24', 1),
+(14, 'GAST402', 'Pastelería Avanzada', 4, 'Técnicas modernas de repostería', 6, 1, 1, 4, 0, '1', '2026-05-25 18:39:24', 1),
+(15, 'GAST403', 'Postres II', 4, 'Diabetes', 8, 1, 1, 4, 0, '1', '2026-05-25 18:39:24', 1),
+(16, 'GAST404', 'Sostenibilidad y Cocina Ecológica', 3, 'Prácticas sostenibles en gastronomía', NULL, 1, 1, 4, 0, '1', '2026-05-25 18:39:24', 1),
+(17, 'GAST501', 'Pollo al Horno III', 5, 'Innovación gastronómica', 12, 1, 1, 5, 0, '1', '2026-05-25 18:39:24', 1),
+(18, 'GAST502', 'Emprendimiento Gastronómico', 4, 'Creación y gestión de negocios', 11, 1, 1, 5, 0, '1', '2026-05-25 18:39:24', 1),
+(19, 'GAST503', 'Servicio y Protocolo', 3, 'Atención al cliente y sommeliería', NULL, 1, 1, 5, 0, '1', '2026-05-25 18:39:24', 1),
+(20, 'GAST504', 'Prácticas Profesionales I', 4, 'Experiencia en cocina real', 9, 1, 1, 5, 0, '1', '2026-05-25 18:39:24', 1),
+(21, 'GAST601', 'Proyecto Final de Grado', 6, 'Desarrollo de menú completo y tesis', 13, 1, 1, 6, 0, '1', '2026-05-25 18:39:24', 1),
+(22, 'GAST602', 'Prácticas Profesionales II', 6, 'Pasantía avanzada', 13, 1, 1, 6, 0, '1', '2026-05-25 18:39:24', 1),
+(23, 'GAST603', 'Marketing Gastronómico', 3, 'Estrategias de promoción', 11, 1, 1, 6, 0, '1', '2026-05-25 18:39:24', 1),
+(24, 'GAST604', 'Legislación y Normativa Alimentaria', 3, 'Aspectos legales del sector', NULL, 1, 1, 6, 0, '1', '2026-05-25 18:39:24', 1),
+(25, 'GAST505', 'Cocina Molecular y Técnicas Avanzadas', 4, 'Esferificaciones, espumas, nitrógeno líquido y otras técnicas modernas de cocina', NULL, 1, 1, 5, 1, 'adminp', '2026-05-31 23:49:42', 1),
+(26, 'GAST506', 'Gastronomía Asiática y Fusión', 4, 'Técnicas de cocina asiática y creación de platos fusión', NULL, 1, 1, 5, 1, 'adminp', '2026-05-31 23:49:42', 1),
+(27, 'GAST605', 'Cocina de Autor y Creatividad Gastronómica', 5, 'Desarrollo de identidad culinaria y platos de autor', NULL, 1, 1, 6, 1, 'adminp', '2026-05-31 23:49:42', 1),
+(28, 'GAST606', 'Gestión de Restaurantes y Alta Cocina', 4, 'Administración avanzada de restaurantes, costos y experiencia del cliente', NULL, 1, 1, 6, 1, 'adminp', '2026-05-31 23:49:42', 1);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `migrations`
+-- Estructura de tabla para la tabla `migrations`
 --
 
 CREATE TABLE `migrations` (
@@ -291,18 +337,19 @@ CREATE TABLE `migrations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `migrations`
+-- Volcado de datos para la tabla `migrations`
 --
 
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (1, '0001_01_01_000000_create_users_table', 1),
 (2, '0001_01_01_000001_create_cache_table', 1),
-(3, '0001_01_01_000002_create_jobs_table', 1);
+(3, '0001_01_01_000002_create_jobs_table', 1),
+(4, '2026_05_26_040218_create_personal_access_tokens_table', 2);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `modalidad`
+-- Estructura de tabla para la tabla `modalidad`
 --
 
 CREATE TABLE `modalidad` (
@@ -315,7 +362,7 @@ CREATE TABLE `modalidad` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `modalidad`
+-- Volcado de datos para la tabla `modalidad`
 --
 
 INSERT INTO `modalidad` (`id`, `nombre`, `maxMateriasPermitidas`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
@@ -326,7 +373,7 @@ INSERT INTO `modalidad` (`id`, `nombre`, `maxMateriasPermitidas`, `usuarioA`, `f
 -- --------------------------------------------------------
 
 --
--- Table structure for table `notificacion`
+-- Estructura de tabla para la tabla `notificacion`
 --
 
 CREATE TABLE `notificacion` (
@@ -344,7 +391,7 @@ CREATE TABLE `notificacion` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `password_reset_tokens`
+-- Estructura de tabla para la tabla `password_reset_tokens`
 --
 
 CREATE TABLE `password_reset_tokens` (
@@ -356,7 +403,7 @@ CREATE TABLE `password_reset_tokens` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pensum`
+-- Estructura de tabla para la tabla `pensum`
 --
 
 CREATE TABLE `pensum` (
@@ -370,7 +417,7 @@ CREATE TABLE `pensum` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `pensum`
+-- Volcado de datos para la tabla `pensum`
 --
 
 INSERT INTO `pensum` (`id`, `idCarrera`, `anioCreacion`, `estado`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
@@ -379,7 +426,7 @@ INSERT INTO `pensum` (`id`, `idCarrera`, `anioCreacion`, `estado`, `usuarioA`, `
 -- --------------------------------------------------------
 
 --
--- Table structure for table `periodoacademico`
+-- Estructura de tabla para la tabla `periodoacademico`
 --
 
 CREATE TABLE `periodoacademico` (
@@ -394,10 +441,43 @@ CREATE TABLE `periodoacademico` (
   `estadoA` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `periodoacademico`
+--
+
+INSERT INTO `periodoacademico` (`id`, `codigo`, `fechaInicio`, `fechaFin`, `idCarrera`, `estado`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
+(1, '02', '2026-06-01', '2026-07-05', 1, 1, '1', '2026-05-31 19:19:48', 1);
+
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sessions`
+-- Estructura de tabla para la tabla `personal_access_tokens`
+--
+
+CREATE TABLE `personal_access_tokens` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `tokenable_type` varchar(255) NOT NULL,
+  `tokenable_id` bigint(20) UNSIGNED NOT NULL,
+  `name` text NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `abilities` text DEFAULT NULL,
+  `last_used_at` timestamp NULL DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `personal_access_tokens`
+--
+
+INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
+(7, 'App\\Models\\Usuario', 1, 'auth_token', '094c02874e3d20cd1c0d8f87c5eaa4c3e3d7fedf605c5b2c76ad7c89ecfc8e44', '[\"*\"]', '2026-06-01 03:25:13', NULL, '2026-06-01 01:19:27', '2026-06-01 03:25:13');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `sessions`
 --
 
 CREATE TABLE `sessions` (
@@ -412,7 +492,7 @@ CREATE TABLE `sessions` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users`
+-- Estructura de tabla para la tabla `users`
 --
 
 CREATE TABLE `users` (
@@ -429,7 +509,7 @@ CREATE TABLE `users` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `usuario`
+-- Estructura de tabla para la tabla `usuario`
 --
 
 CREATE TABLE `usuario` (
@@ -449,34 +529,54 @@ CREATE TABLE `usuario` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `usuario`
+-- Volcado de datos para la tabla `usuario`
 --
 
 INSERT INTO `usuario` (`id`, `email`, `nombreUsuario`, `contrasena`, `rol`, `estado`, `usuarioA`, `fechaHoraA`, `estadoA`, `nombre1`, `nombre2`, `apellidoP`, `apellidoM`) VALUES
-(1, 'adminpedro@universidad.edu', 'adminp', '123', 'Administrador', 1, '1', '2026-05-25 18:44:01', 1, 'Pedro', NULL, 'Panqueques', NULL),
+(1, 'adminpedro@universidad.edu', 'adminp', '$2y$10$RTr0NhvjZdaZmtAMKEQrNe1tBOuEDd8wrPUq2pJC4MsFRi6o7CRlO', 'Administrador', 1, '1', '2026-05-25 18:44:01', 1, 'Pedro', NULL, 'Panqueques', NULL),
 (2, 'charliep@universidad.edu', 'cpapas', '123', 'Docente', 1, '1', '2026-05-25 18:44:01', 1, 'Charlie', NULL, 'Papas', NULL),
-(3, 'aliciat@universidad.edu', 'atorres', '123', 'Estudiante', 1, '1', '2026-05-25 18:44:42', 1, 'Alicia', NULL, 'Torres', NULL);
+(3, 'aliciat@universidad.edu', 'atorres', '123', 'Estudiante', 1, '1', '2026-05-25 18:44:42', 1, 'Alicia', NULL, 'Torres', NULL),
+(4, 'laura.mendoza@universidad.edu', 'lmendoza', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Laura', 'Isabel', 'Mendoza', 'Vargas'),
+(5, 'carlos.rivera@universidad.edu', 'crivera', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Carlos', 'Andrés', 'Rivera', 'Lopez'),
+(6, 'maria.fernandez@universidad.edu', 'mjfernandez', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'María', 'José', 'Fernández', 'Torres'),
+(7, 'roberto.suarez@universidad.edu', 'rsuarez', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Roberto', NULL, 'Suárez', 'García'),
+(8, 'ana.morales@universidad.edu', 'agmorales', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Ana', 'Gabriela', 'Morales', 'Pérez'),
+(9, 'diego.vargas@universidad.edu', 'dvargas', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Diego', 'Alejandro', 'Vargas', 'Castillo'),
+(10, 'sofia.ramirez@universidad.edu', 'sramirez', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Sofía', 'Elena', 'Ramírez', 'Herrera'),
+(11, 'jorge.castro@universidad.edu', 'jlcastro', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Jorge', 'Luis', 'Castro', 'Molina'),
+(12, 'valentina.ortega@universidad.edu', 'vortega', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Valentina', NULL, 'Ortega', 'Silva'),
+(13, 'miguel.navarro@universidad.edu', 'mnavarro', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Miguel', 'Ángel', 'Navarro', 'Rojas'),
+(16, 'juan.mendoza@universidad.edu', 'jmendoza', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Juan', 'Carlos', 'Mendoza', 'Rojas'),
+(17, 'maria.vargas@universidad.edu', 'mvargas', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'María', 'Laura', 'Vargas', 'López'),
+(18, 'luis.gomez@universidad.edu', 'lagomez', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Luis', 'Alejandro', 'Gómez', 'Torres'),
+(19, 'ana.ramirez@universidad.edu', 'asramirez', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Ana', 'Sofía', 'Ramírez', 'Castillo'),
+(20, 'diego.morales@universidad.edu', 'dmorales', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Diego', 'Fernando', 'Morales', 'Herrera'),
+(21, 'valeria.ortega@universidad.edu', 'vortex', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Valeria', NULL, 'Ortega', 'Silva'),
+(22, 'andres.navarro@universidad.edu', 'anavarro', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Andrés', 'Felipe', 'Navarro', 'Pérez'),
+(23, 'camila.rojas@universidad.edu', 'crojas', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Camila', 'Andrea', 'Rojas', 'Molina'),
+(24, 'mateo.fernandez@universidad.edu', 'mfernandez', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Mateo', NULL, 'Fernández', 'Vargas'),
+(25, 'isabella.castro@universidad.edu', 'icastro', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Isabella', 'Valentina', 'Castro', 'Suárez');
 
 --
--- Indexes for dumped tables
+-- Índices para tablas volcadas
 --
 
 --
--- Indexes for table `cache`
+-- Indices de la tabla `cache`
 --
 ALTER TABLE `cache`
   ADD PRIMARY KEY (`key`),
   ADD KEY `cache_expiration_index` (`expiration`);
 
 --
--- Indexes for table `cache_locks`
+-- Indices de la tabla `cache_locks`
 --
 ALTER TABLE `cache_locks`
   ADD PRIMARY KEY (`key`),
   ADD KEY `cache_locks_expiration_index` (`expiration`);
 
 --
--- Indexes for table `carrera`
+-- Indices de la tabla `carrera`
 --
 ALTER TABLE `carrera`
   ADD PRIMARY KEY (`id`),
@@ -484,7 +584,7 @@ ALTER TABLE `carrera`
   ADD KEY `idModalidad` (`idModalidad`);
 
 --
--- Indexes for table `curso`
+-- Indices de la tabla `curso`
 --
 ALTER TABLE `curso`
   ADD PRIMARY KEY (`id`),
@@ -493,13 +593,13 @@ ALTER TABLE `curso`
   ADD KEY `idx_curso_docente` (`idDocente`);
 
 --
--- Indexes for table `docente`
+-- Indices de la tabla `docente`
 --
 ALTER TABLE `docente`
   ADD PRIMARY KEY (`idUsuario`);
 
 --
--- Indexes for table `estudiante`
+-- Indices de la tabla `estudiante`
 --
 ALTER TABLE `estudiante`
   ADD PRIMARY KEY (`idUsuario`),
@@ -507,21 +607,32 @@ ALTER TABLE `estudiante`
   ADD KEY `idCarrera` (`idCarrera`);
 
 --
--- Indexes for table `failed_jobs`
+-- Indices de la tabla `failed_jobs`
 --
 ALTER TABLE `failed_jobs`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`);
 
 --
--- Indexes for table `horario`
+-- Indices de la tabla `historialacademico`
+--
+ALTER TABLE `historialacademico`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uk_estudiante_materia_periodo` (`idEstudiante`,`idMateria`,`idPeriodoAcademico`),
+  ADD KEY `idPeriodoAcademico` (`idPeriodoAcademico`),
+  ADD KEY `idInscripcion` (`idInscripcion`),
+  ADD KEY `idx_historial_estudiante` (`idEstudiante`),
+  ADD KEY `idx_historial_materia` (`idMateria`);
+
+--
+-- Indices de la tabla `horario`
 --
 ALTER TABLE `horario`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_horario_curso` (`idCurso`);
 
 --
--- Indexes for table `inscripcion`
+-- Indices de la tabla `inscripcion`
 --
 ALTER TABLE `inscripcion`
   ADD PRIMARY KEY (`id`),
@@ -530,68 +641,79 @@ ALTER TABLE `inscripcion`
   ADD KEY `idx_inscripcion_curso` (`idCurso`);
 
 --
--- Indexes for table `jobs`
+-- Indices de la tabla `jobs`
 --
 ALTER TABLE `jobs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `jobs_queue_index` (`queue`);
 
 --
--- Indexes for table `job_batches`
+-- Indices de la tabla `job_batches`
 --
 ALTER TABLE `job_batches`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `materia`
+-- Indices de la tabla `materia`
 --
 ALTER TABLE `materia`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `codigo` (`codigo`),
   ADD KEY `idPrerequisito` (`idPrerequisito`),
-  ADD KEY `idPensum` (`idPensum`);
+  ADD KEY `idPensum` (`idPensum`),
+  ADD KEY `idx_materia_semestre` (`semestre`),
+  ADD KEY `idx_materia_electiva` (`esElectiva`);
 
 --
--- Indexes for table `migrations`
+-- Indices de la tabla `migrations`
 --
 ALTER TABLE `migrations`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `modalidad`
+-- Indices de la tabla `modalidad`
 --
 ALTER TABLE `modalidad`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `notificacion`
+-- Indices de la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idUsuario` (`idUsuario`);
 
 --
--- Indexes for table `password_reset_tokens`
+-- Indices de la tabla `password_reset_tokens`
 --
 ALTER TABLE `password_reset_tokens`
   ADD PRIMARY KEY (`email`);
 
 --
--- Indexes for table `pensum`
+-- Indices de la tabla `pensum`
 --
 ALTER TABLE `pensum`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idCarrera` (`idCarrera`);
 
 --
--- Indexes for table `periodoacademico`
+-- Indices de la tabla `periodoacademico`
 --
 ALTER TABLE `periodoacademico`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_periodo_carrera` (`idCarrera`);
 
 --
--- Indexes for table `sessions`
+-- Indices de la tabla `personal_access_tokens`
+--
+ALTER TABLE `personal_access_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
+  ADD KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`),
+  ADD KEY `personal_access_tokens_expires_at_index` (`expires_at`);
+
+--
+-- Indices de la tabla `sessions`
 --
 ALTER TABLE `sessions`
   ADD PRIMARY KEY (`id`),
@@ -599,14 +721,14 @@ ALTER TABLE `sessions`
   ADD KEY `sessions_last_activity_index` (`last_activity`);
 
 --
--- Indexes for table `users`
+-- Indices de la tabla `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `users_email_unique` (`email`);
 
 --
--- Indexes for table `usuario`
+-- Indices de la tabla `usuario`
 --
 ALTER TABLE `usuario`
   ADD PRIMARY KEY (`id`),
@@ -614,105 +736,117 @@ ALTER TABLE `usuario`
   ADD UNIQUE KEY `nombreUsuario` (`nombreUsuario`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT de las tablas volcadas
 --
 
 --
--- AUTO_INCREMENT for table `carrera`
+-- AUTO_INCREMENT de la tabla `carrera`
 --
 ALTER TABLE `carrera`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `curso`
+-- AUTO_INCREMENT de la tabla `curso`
 --
 ALTER TABLE `curso`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `failed_jobs`
+-- AUTO_INCREMENT de la tabla `failed_jobs`
 --
 ALTER TABLE `failed_jobs`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `horario`
+-- AUTO_INCREMENT de la tabla `historialacademico`
 --
-ALTER TABLE `horario`
+ALTER TABLE `historialacademico`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `inscripcion`
+-- AUTO_INCREMENT de la tabla `horario`
+--
+ALTER TABLE `horario`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT de la tabla `inscripcion`
 --
 ALTER TABLE `inscripcion`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `jobs`
+-- AUTO_INCREMENT de la tabla `jobs`
 --
 ALTER TABLE `jobs`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `materia`
+-- AUTO_INCREMENT de la tabla `materia`
 --
 ALTER TABLE `materia`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
--- AUTO_INCREMENT for table `migrations`
+-- AUTO_INCREMENT de la tabla `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `modalidad`
+-- AUTO_INCREMENT de la tabla `modalidad`
 --
 ALTER TABLE `modalidad`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT for table `notificacion`
+-- AUTO_INCREMENT de la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `pensum`
+-- AUTO_INCREMENT de la tabla `pensum`
 --
 ALTER TABLE `pensum`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `periodoacademico`
+-- AUTO_INCREMENT de la tabla `periodoacademico`
 --
 ALTER TABLE `periodoacademico`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `users`
+-- AUTO_INCREMENT de la tabla `personal_access_tokens`
+--
+ALTER TABLE `personal_access_tokens`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `usuario`
+-- AUTO_INCREMENT de la tabla `usuario`
 --
 ALTER TABLE `usuario`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
--- Constraints for dumped tables
+-- Restricciones para tablas volcadas
 --
 
 --
--- Constraints for table `carrera`
+-- Filtros para la tabla `carrera`
 --
 ALTER TABLE `carrera`
   ADD CONSTRAINT `carrera_ibfk_1` FOREIGN KEY (`idModalidad`) REFERENCES `modalidad` (`id`);
 
 --
--- Constraints for table `curso`
+-- Filtros para la tabla `curso`
 --
 ALTER TABLE `curso`
   ADD CONSTRAINT `curso_ibfk_1` FOREIGN KEY (`idMateria`) REFERENCES `materia` (`id`),
@@ -720,52 +854,61 @@ ALTER TABLE `curso`
   ADD CONSTRAINT `curso_ibfk_3` FOREIGN KEY (`idDocente`) REFERENCES `usuario` (`id`);
 
 --
--- Constraints for table `docente`
+-- Filtros para la tabla `docente`
 --
 ALTER TABLE `docente`
   ADD CONSTRAINT `docente_ibfk_1` FOREIGN KEY (`idUsuario`) REFERENCES `usuario` (`id`);
 
 --
--- Constraints for table `estudiante`
+-- Filtros para la tabla `estudiante`
 --
 ALTER TABLE `estudiante`
   ADD CONSTRAINT `estudiante_ibfk_1` FOREIGN KEY (`idUsuario`) REFERENCES `usuario` (`id`),
   ADD CONSTRAINT `estudiante_ibfk_2` FOREIGN KEY (`idCarrera`) REFERENCES `carrera` (`id`);
 
 --
--- Constraints for table `horario`
+-- Filtros para la tabla `historialacademico`
+--
+ALTER TABLE `historialacademico`
+  ADD CONSTRAINT `historialacademico_ibfk_1` FOREIGN KEY (`idEstudiante`) REFERENCES `estudiante` (`idUsuario`),
+  ADD CONSTRAINT `historialacademico_ibfk_2` FOREIGN KEY (`idMateria`) REFERENCES `materia` (`id`),
+  ADD CONSTRAINT `historialacademico_ibfk_3` FOREIGN KEY (`idPeriodoAcademico`) REFERENCES `periodoacademico` (`id`),
+  ADD CONSTRAINT `historialacademico_ibfk_4` FOREIGN KEY (`idInscripcion`) REFERENCES `inscripcion` (`id`);
+
+--
+-- Filtros para la tabla `horario`
 --
 ALTER TABLE `horario`
   ADD CONSTRAINT `horario_ibfk_1` FOREIGN KEY (`idCurso`) REFERENCES `curso` (`id`);
 
 --
--- Constraints for table `inscripcion`
+-- Filtros para la tabla `inscripcion`
 --
 ALTER TABLE `inscripcion`
   ADD CONSTRAINT `inscripcion_ibfk_1` FOREIGN KEY (`idEstudiante`) REFERENCES `estudiante` (`idUsuario`),
   ADD CONSTRAINT `inscripcion_ibfk_2` FOREIGN KEY (`idCurso`) REFERENCES `curso` (`id`);
 
 --
--- Constraints for table `materia`
+-- Filtros para la tabla `materia`
 --
 ALTER TABLE `materia`
   ADD CONSTRAINT `materia_ibfk_1` FOREIGN KEY (`idPrerequisito`) REFERENCES `materia` (`id`),
   ADD CONSTRAINT `materia_ibfk_2` FOREIGN KEY (`idPensum`) REFERENCES `pensum` (`id`);
 
 --
--- Constraints for table `notificacion`
+-- Filtros para la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
   ADD CONSTRAINT `notificacion_ibfk_1` FOREIGN KEY (`idUsuario`) REFERENCES `usuario` (`id`);
 
 --
--- Constraints for table `pensum`
+-- Filtros para la tabla `pensum`
 --
 ALTER TABLE `pensum`
   ADD CONSTRAINT `pensum_ibfk_1` FOREIGN KEY (`idCarrera`) REFERENCES `carrera` (`id`);
 
 --
--- Constraints for table `periodoacademico`
+-- Filtros para la tabla `periodoacademico`
 --
 ALTER TABLE `periodoacademico`
   ADD CONSTRAINT `periodoacademico_ibfk_1` FOREIGN KEY (`idCarrera`) REFERENCES `carrera` (`id`);

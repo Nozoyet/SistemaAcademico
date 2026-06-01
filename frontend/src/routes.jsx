@@ -2,6 +2,9 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import Login from './pages/auth/Login.jsx';
 import Bienvenida from './pages/Bienvenida.jsx';
 import Reportes from './pages/admin/Reportes.jsx';
+import ReportesMenu from './pages/admin/ReportesMenu.jsx';
+import ReportesEstudiantes from './pages/admin/ReportesEstudiantes.jsx';
+import ReportesDocentes from './pages/admin/ReportesDocentes.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import GestionarUsuarios from './pages/admin/GestionarUsuarios.jsx';
 import PensumLista from './pages/admin/pensum/PensumLista.jsx';
@@ -33,6 +36,30 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute roles={['Administrador']}>
         <Reportes />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/reportes/menu',
+    element: (
+      <ProtectedRoute roles={['Administrador']}>
+        <ReportesMenu />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/reportes/estudiantes',
+    element: (
+      <ProtectedRoute roles={['Administrador']}>
+        <ReportesEstudiantes />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/reportes/docentes',
+    element: (
+      <ProtectedRoute roles={['Administrador']}>
+        <ReportesDocentes />
       </ProtectedRoute>
     ),
   },

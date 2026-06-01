@@ -82,7 +82,16 @@ Route::get('/inscripciones/historial', [InscripcionController::class, 'historial
 Route::middleware(['auth:sanctum', 'admin'])->prefix('reportes')->group(function () {
     Route::get('carreras', [ReporteController::class, 'carreras']);
     Route::get('materias', [ReporteController::class, 'materiasXCarrera']);
+    Route::get('gestiones', [ReporteController::class, 'gestiones']);
+    Route::get('periodos', [ReporteController::class, 'periodos']);
+    Route::get('cursos-por-periodo', [ReporteController::class, 'cursosPorPeriodo']);
+    Route::get('estudiantes', [ReporteController::class, 'reporteEstudiantes']);
+    Route::get('docentes', [ReporteController::class, 'reporteDocentes']);
     Route::get('exportar-pdf/{carreraId}', [ReporteController::class, 'exportPdf']);
     Route::get('exportar-excel/{carreraId}', [ReporteController::class, 'exportExcel']);
+    Route::get('exportar-pdf-estudiantes', [ReporteController::class, 'exportPdfEstudiantes']);
+    Route::get('exportar-excel-estudiantes', [ReporteController::class, 'exportExcelEstudiantes']);
+    Route::get('exportar-pdf-docentes', [ReporteController::class, 'exportPdfDocentes']);
+    Route::get('exportar-excel-docentes', [ReporteController::class, 'exportExcelDocentes']);
 });
 
