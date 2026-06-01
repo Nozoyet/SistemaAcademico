@@ -27,7 +27,15 @@ const ROL_CONFIG = {
         ]
       },
       { label: "Usuarios", href: "/admin/GestionarUsuarios", icon: "👥" },
-      { label: "Reportes", href: "/admin/reportes", icon: "📊" },
+      {
+        label: "Reportes",
+        icon: "📊",
+        subLinks: [
+          { label: "Reportes por carrera", href: "/admin/reportes", icon: "📋" },
+          { label: "Reportes de estudiantes", href: "/admin/reportes/estudiantes", icon: "👨‍🎓" },
+          { label: "Reportes de docentes", href: "/admin/reportes/docentes", icon: "👨‍🏫" }
+        ]
+      },
       { label: "Gestionar Pensum", href: "/admin/pensum", icon: "🗂️" },
       { label: "Perfil", href: "/admin/perfil", icon: "👤" },
     ],
@@ -75,8 +83,8 @@ export default function Bienvenida() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
-  // Estado para alternar el menú desplegable de cursos
-  const [showCursosMenu, setShowCursosMenu] = useState(false);
+  // Estado para alternar menús desplegables (almacena el índice del menú abierto, o null)
+  const [openMenuIndex, setOpenMenuIndex] = useState(null);
 
   const config = ROL_CONFIG[user?.rol] || ROL_CONFIG.Estudiante;
   const hora = new Date().getHours();
@@ -129,10 +137,11 @@ export default function Bienvenida() {
 
               // Renderizado condicional si el botón posee sub-enlaces
               if (link.subLinks) {
+                const isOpen = openMenuIndex === index;
                 return (
                   <div key={index} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     <button
-                      onClick={() => setShowCursosMenu(!showCursosMenu)}
+                      onClick={() => setOpenMenuIndex(isOpen ? null : index)}
                       style={{ ...styles.linkCard, "--accent": config.color }}
                       onMouseOver={(e) => (e.currentTarget.style.borderColor = config.color)}
                       onMouseOut={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
@@ -142,14 +151,14 @@ export default function Bienvenida() {
                       {/* La flecha rota 90 grados si el menú está activo */}
                       <svg
                         width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={config.color} strokeWidth="2.5"
-                        style={{ marginLeft: "auto", flexShrink: 0, transform: showCursosMenu ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}
+                        style={{ marginLeft: "auto", flexShrink: 0, transform: isOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}
                       >
                         <path d="M5 12h14M12 5l7 7-7 7" />
                       </svg>
                     </button>
 
                     {/* Sub-enlaces que aparecen únicamente al hacer clic */}
-                    {showCursosMenu && link.subLinks.map((subLink) => (
+                    {isOpen && link.subLinks.map((subLink) => (
                       <button
                         key={subLink.href}
                         onClick={() => navigate(subLink.href)}
