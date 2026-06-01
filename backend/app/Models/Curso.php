@@ -23,4 +23,9 @@ class Curso extends Model
     {
         return $this->hasMany(Horario::class, 'idCurso', 'id');
     }
+    // En app/Models/Curso.php
+public function inscripciones()
+{
+    return $this->hasMany(Inscripcion::class, 'idCurso', 'id');
+}
 }

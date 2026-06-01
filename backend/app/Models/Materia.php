@@ -10,7 +10,18 @@ class Materia extends Model
     protected $primaryKey = 'id';
     public $timestamps = false;
 
-    protected $fillable = ['codigo', 'nombre', 'creditos', 'descripcion', 'semestre', 'idPrerequisito', 'idPensum', 'estado', 'usuarioA', 'estadoA'];
+    protected $fillable = ['codigo', 
+    'nombre', 
+    'creditos', 
+    'descripcion', 
+    'semestre', 
+    'idPrerequisito', 
+    'idPensum', 
+    'estado', 
+    'usuarioA', 
+    'estadoA',
+    'esElectiva'
+    ];
 
     public function pensum()
     {

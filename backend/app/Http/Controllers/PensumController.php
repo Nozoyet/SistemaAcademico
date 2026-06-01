@@ -99,6 +99,7 @@ class PensumController extends Controller
                 'idPensum'      => $id,
                 'estado'        => $m->estado,
                 'usuarioA'      => $request->user()->id,
+                'esElectiva'     => $m->esElectiva,
             ]);
             $mapaIds[$m->id] = $nueva->id;
             $nuevasMaterias[] = $nueva;

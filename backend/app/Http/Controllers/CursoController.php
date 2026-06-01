@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Models\Curso;
 use App\Models\Horario;
 use Illuminate\Support\Facades\DB;
+use App\Models\PeriodoAcademico;
 
 class CursoController extends Controller
 {
@@ -48,7 +49,7 @@ class CursoController extends Controller
         }
 
         // ── Validación de choque de horario del docente ──────────────────
-        $choque = $this->detectarChoque($validated['idDocente'], $validated['horarios']);
+        $choque = $this->detectarChoque($validated['idDocente'], $validated['horarios'], null, $validated['idPeriodoAcademico'] );
         if ($choque) {
             return response()->json([
                 'success' => false,
@@ -115,7 +116,7 @@ class CursoController extends Controller
         // Validar choque excluyendo el curso actual
         if (!empty($validated['horarios'])) {
             $idDocente = $validated['idDocente'] ?? $curso->idDocente;
-            $choque = $this->detectarChoque($idDocente, $validated['horarios'], $id);
+            $choque = $this->detectarChoque($idDocente, $validated['horarios'], $id, $curso->idPeriodoAcademico);
             if ($choque) {
                 return response()->json([
                     'success' => false,
@@ -168,31 +169,87 @@ class CursoController extends Controller
         return response()->json(['success' => true, 'message' => 'Curso eliminado correctamente']);
     }
 
+    // GET /api/cursos/historial-periodos
+public function historialPeriodos(Request $request)
+{
+    $periodos = PeriodoAcademico::with([
+        'carrera',
+        'cursos' => function ($q) {
+            $q->where('estadoA', 1)
+              ->with([
+                  'materia',
+                  'docente',
+                  'horarios',
+                  'inscripciones' => fn($q) => $q->where('estado', 'Activa')->where('estadoA', 1),
+              ]);
+        },
+    ])
+    ->where('estadoA', 1)
+    ->orderByDesc('fechaInicio')
+    ->get()
+    ->map(function ($periodo) {
+        return [
+            'id'          => $periodo->id,
+            'codigo'      => $periodo->codigo,
+            'fechaInicio' => $periodo->fechaInicio,
+            'fechaFin'    => $periodo->fechaFin,
+            'carrera'     => $periodo->carrera?->nombre,
+            'cursos'      => $periodo->cursos->map(function ($c) {
+                return [
+                    'id'            => $c->id,
+                    'codigoGrupo'   => $c->codigoGrupo,
+                    'cupoMaximo'    => $c->cupoMaximo,
+                    'cupoActual'    => $c->cupoActual,
+                    'idDocente'     => $c->idDocente,
+                    'inscritosCount'=> $c->inscripciones->count(),
+                    'materia'       => $c->materia ? [
+                        'id'      => $c->materia->id,
+                        'codigo'  => $c->materia->codigo,
+                        'nombre'  => $c->materia->nombre,
+                        'creditos'=> $c->materia->creditos,
+                    ] : null,
+                    'docente' => $c->docente ? [
+                        'id'     => $c->docente->id,
+                        'nombre' => trim("{$c->docente->nombre1} {$c->docente->apellidoP}"),
+                    ] : null,
+                    'horarios' => $c->horarios->map(fn($h) => [
+                        'diaSemana'  => $h->diaSemana,
+                        'horaInicio' => substr($h->horaInicio, 0, 5),
+                        'horaFin'    => substr($h->horaFin, 0, 5),
+                        'aula'       => $h->aula,
+                    ]),
+                ];
+            }),
+        ];
+    });
+
+    return response()->json(['success' => true, 'data' => $periodos]);
+}
     // ── Detectar choque de horario ───────────────────────────────────────────
-    private function detectarChoque(int $idDocente, array $nuevosHorarios, ?int $excluirCursoId = null): ?array
-    {
-        // Traer todos los horarios activos del docente
-        $query = Horario::whereHas('curso', function ($q) use ($idDocente, $excluirCursoId) {
-            $q->where('idDocente', $idDocente)->where('estadoA', 1);
-            if ($excluirCursoId) $q->where('id', '!=', $excluirCursoId);
-        })->with('curso')->where('estadoA', 1);
+    private function detectarChoque(int $idDocente, array $nuevosHorarios, ?int $excluirCursoId = null, ?int $idPeriodo = null): ?array
+{
+    $query = Horario::whereHas('curso', function ($q) use ($idDocente, $excluirCursoId, $idPeriodo) {
+        $q->where('idDocente', $idDocente)->where('estadoA', 1);
+        if ($excluirCursoId) $q->where('id', '!=', $excluirCursoId);
+        // ← Solo valida dentro del período actual
+        if ($idPeriodo) $q->where('idPeriodoAcademico', $idPeriodo);
+    })->with('curso')->where('estadoA', 1);
 
-        $existentes = $query->get();
+    $existentes = $query->get();
 
-        foreach ($nuevosHorarios as $nuevo) {
-            $diaMatch = $existentes->where('diaSemana', $nuevo['diaSemana']);
-            foreach ($diaMatch as $ex) {
-                // Choque si los rangos se solapan
-                if ($nuevo['horaInicio'] < $ex->horaFin && $nuevo['horaFin'] > $ex->horaInicio) {
-                    return [
-                        'dia'    => $ex->diaSemana,
-                        'inicio' => $ex->horaInicio,
-                        'fin'    => $ex->horaFin,
-                        'grupo'  => $ex->curso->codigoGrupo,
-                    ];
-                }
+    foreach ($nuevosHorarios as $nuevo) {
+        $diaMatch = $existentes->where('diaSemana', $nuevo['diaSemana']);
+        foreach ($diaMatch as $ex) {
+            if ($nuevo['horaInicio'] < $ex->horaFin && $nuevo['horaFin'] > $ex->horaInicio) {
+                return [
+                    'dia'    => $ex->diaSemana,
+                    'inicio' => $ex->horaInicio,
+                    'fin'    => $ex->horaFin,
+                    'grupo'  => $ex->curso->codigoGrupo,
+                ];
             }
         }
-        return null;
     }
+    return null;
+}
 }

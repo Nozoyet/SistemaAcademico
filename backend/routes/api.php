@@ -47,8 +47,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Cursos
     Route::get('/cursos',          [CursoController::class, 'index']);
     Route::post('/cursos',         [CursoController::class, 'store']);
+    Route::get('/cursos/historial-periodos', [CursoController::class, 'historialPeriodos']);
     Route::delete('/cursos/{id}',  [CursoController::class, 'destroy']);
     Route::put('/cursos/{id}', [CursoController::class, 'update']);
+  
 
     // Carreras - pensum activo con materias
     

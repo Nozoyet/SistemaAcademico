@@ -22,7 +22,19 @@ class PeriodoAcademicoController extends Controller
             'fechaFin'    => 'required|date|after:fechaInicio',
             'idCarrera'   => 'required|exists:carrera,id',
             'estado'      => 'boolean',
-        ]);
+        ], [
+        // Mensajes personalizados
+        'required' => 'El campo :attribute es obligatorio.',
+        'date'     => 'El campo :attribute debe ser una fecha válida.',
+        'after'    => 'La :attribute debe ser una fecha posterior a la :date.',
+        'exists'   => 'La carrera seleccionada no es válida.',
+    ], [
+        // Atributos personalizados (para que no salgan nombres raros de la BD)
+        'codigo'      => 'código',
+        'fechaInicio' => 'fecha de inicio',
+        'fechaFin'    => 'fecha de fin',
+        'idCarrera'   => 'carrera',
+    ]);
 
         $existe = PeriodoAcademico::where('codigo', $validated['codigo'])
             ->where('idCarrera', $validated['idCarrera'])

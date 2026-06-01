@@ -12,6 +12,7 @@ import GestionCursos from './pages/admin/GestionCursos.jsx';
 import CursosDisponibles from './pages/estudiante/CursosDisponibles.jsx';
 import MisInscripciones from './pages/estudiante/MisInscripciones.jsx';
 
+
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/login" replace /> },
   { path: '/login', element: <Login /> },
