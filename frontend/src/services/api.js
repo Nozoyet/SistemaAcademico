@@ -37,3 +37,5 @@ export const eliminarUsuario = (id) => api.delete(`/usuarios/${id}`);
 export const asignarRol = (id, rol) => api.put(`/usuarios/${id}/rol`, { rol });
 
 export default api;
+
+export const obtenerCarreras = () => api.get("/carrera");
