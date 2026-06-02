@@ -119,6 +119,30 @@ class PensumController extends Controller
         ]);
     }
 
+    public function update(Request $request, $id)
+    {
+        $pensum = Pensum::where('estadoA', 1)->find($id);
+
+        if (! $pensum) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pensum no encontrado',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'estado' => 'required|boolean',
+        ]);
+
+        $pensum->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Estado del pensum actualizado correctamente',
+            'data'    => $pensum->load('carrera'),
+        ]);
+    }
+
     public function destroy($id)
     {
         $pensum = Pensum::where('estadoA', 1)->find($id);

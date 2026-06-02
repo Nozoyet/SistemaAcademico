@@ -53,8 +53,8 @@ const ROL_CONFIG = {
     greeting: "Portal Docente",
     desc: "Consulta tus cursos asignados, registra calificaciones y gestiona horarios.",
     links: [
-      { label: "Mis cursos", href: "/docente/cursos", icon: "🎓" },
-      { label: "Calificaciones", href: "/docente/calificaciones", icon: "✏️" },
+      { label: "Mis Cursos", href: "/docente/cursos", icon: "🎓" },
+      { label: "Calificaciones", href: "/docente/cursos", icon: "✏️" },
       { label: "Horarios", href: "/docente/horarios", icon: "🗓️" },
       {
         label: "Reportes",
@@ -67,6 +67,7 @@ const ROL_CONFIG = {
           { label: "Calificaciones", href: "/docente/reportes/calificaciones", icon: "📝" }
         ]
       },
+      { label: "Mi Perfil", href: "/docente/perfil", icon: "👤" },
     ],
   },
   Estudiante: {

@@ -57,8 +57,8 @@ export default function PensumLista() {
                 <h3 style={styles.cardTitle}>{p.carrera?.nombre || "Sin carrera"}</h3>
                 <div style={styles.cardMeta}>
                   <span style={styles.badge}>{p.anioCreacion}</span>
-                  {p.duracion && <span style={{ ...styles.badge, background: "#f0fdfa", color: "#0d9488" }}>{p.duracion} sem</span>}
-                  <span style={{ ...styles.badge, background: p.estado ? "#dcfce7" : "#fef2f2", color: p.estado ? "#16a34a" : "#dc2626" }}>
+                  {p.duracion && <span style={{ ...styles.badge, background: "rgba(16,185,129,0.15)", color: "#34d399" }}>{p.duracion} sem</span>}
+                  <span style={{ ...styles.badge, background: p.estado ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)", color: p.estado ? "#34d399" : "#f87171" }}>
                     {p.estado ? "Activo" : "Inactivo"}
                   </span>
                 </div>
@@ -69,7 +69,7 @@ export default function PensumLista() {
                 <button onClick={() => navigate(`/admin/pensum/${p.id}`)} style={styles.btnOutline}>
                   Ver detalle
                 </button>
-                <button onClick={() => { setDeleteTarget(p); setDeleteError(""); }} style={{ ...styles.btnOutline, color: "#dc2626", borderColor: "#fecaca" }}>
+                <button onClick={() => { setDeleteTarget(p); setDeleteError(""); }} style={{ ...styles.btnOutline, color: "#f87171", borderColor: "#7f1d1d" }}>
                   Eliminar
                 </button>
               </div>
@@ -95,38 +95,38 @@ export default function PensumLista() {
 }
 
 const styles = {
-  root: { maxWidth: 800, margin: "0 auto", padding: "2rem 1.5rem", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "2rem" },
+  root: { maxWidth: 1100, margin: "0 auto", padding: "2rem 1.5rem", fontFamily: "'DM Sans', 'Segoe UI', sans-serif", background: "#ffffff", minHeight: "100vh" },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1.5rem", marginBottom: "2rem" },
   title: { fontSize: "1.6rem", fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" },
   subtitle: { fontSize: "0.88rem", color: "#64748b", margin: "0.3rem 0 0" },
   btnPrimary: {
-    padding: "0.55rem 1.2rem", background: "#1D4ED8", color: "white", border: "none",
+    padding: "0.55rem 1.2rem", background: "#7c3aed", color: "white", border: "none",
     borderRadius: 8, fontSize: "0.88rem", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
   },
   btnOutline: {
-    padding: "0.4rem 0.85rem", background: "white", color: "#1e293b", border: "1.5px solid #e2e8f0",
+    padding: "0.4rem 0.85rem", background: "transparent", color: "#cbd5e1", border: "1.5px solid #334155",
     borderRadius: 6, fontSize: "0.8rem", fontWeight: 500, cursor: "pointer",
   },
   btnBack: {
     marginTop: "2rem", padding: "0.5rem 1rem", background: "none", border: "none",
-    color: "#1D4ED8", fontSize: "0.88rem", fontWeight: 500, cursor: "pointer",
+    color: "#7c3aed", fontSize: "0.88rem", fontWeight: 500, cursor: "pointer",
   },
-  grid: { display: "flex", flexDirection: "column", gap: "0.85rem" },
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: "1rem" },
   card: {
-    background: "white", borderRadius: 12, border: "1px solid #e2e8f0",
-    overflow: "hidden", boxShadow: "0 1px 6px rgba(0,0,0,0.04)",
+    background: "#1e293b", borderRadius: 12, border: "1px solid #334155",
+    overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
   },
   cardBody: { padding: "1.25rem 1.25rem 0.75rem" },
-  cardTitle: { fontSize: "1.05rem", fontWeight: 600, color: "#0f172a", margin: "0 0 0.5rem" },
+  cardTitle: { fontSize: "1.05rem", fontWeight: 600, color: "#f1f5f9", margin: "0 0 0.5rem" },
   cardMeta: { display: "flex", gap: 8, marginBottom: "0.4rem" },
   badge: {
     padding: "0.2rem 0.6rem", borderRadius: 999, fontSize: "0.75rem", fontWeight: 600,
-    background: "#e0f2fe", color: "#0369a1",
+    background: "rgba(255,255,255,0.1)", color: "#cbd5e1",
   },
-  cardCodigo: { fontSize: "0.82rem", color: "#64748b", margin: 0 },
+  cardCodigo: { fontSize: "0.82rem", color: "#94a3b8", margin: 0 },
   cardActions: {
     display: "flex", gap: 8, padding: "0.6rem 1.25rem 1rem",
-    borderTop: "1px solid #f1f5f9", background: "#fafafa",
+    borderTop: "1px solid #334155", background: "rgba(255,255,255,0.03)",
   },
   loader: { textAlign: "center", padding: "4rem", color: "#64748b", fontSize: "1rem" },
   empty: { textAlign: "center", padding: "4rem 1rem", color: "#64748b" },

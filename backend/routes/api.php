@@ -10,6 +10,8 @@ use App\Http\Controllers\MateriaController;
 use App\Http\Controllers\PeriodoAcademicoController;
 use App\Http\Controllers\CursoController;
 use App\Http\Controllers\InscripcionController;
+use App\Http\Controllers\DocenteController;
+use App\Http\Controllers\EstudianteReporteController;
 use App\Http\Controllers\ReporteDocenteController;
 
 Route::prefix('auth')->group(function () {
@@ -114,4 +116,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/docente/reportes/materias/excel', [ReporteDocenteController::class, 'excelMaterias']);
     Route::get('/docente/reportes/cursos/excel', [ReporteDocenteController::class, 'excelCursos']);
     Route::get('/docente/reportes/calificaciones/excel', [ReporteDocenteController::class, 'excelCalificaciones']);
+
+    // ── Docente: cursos, estudiantes, calificaciones ──
+    Route::get('docente/cursos',                     [DocenteController::class, 'cursos']);
+    Route::get('docente/cursos/{id}/estudiantes',    [DocenteController::class, 'estudiantesPorCurso']);
+    Route::put('docente/cursos/{id}/calificaciones', [DocenteController::class, 'guardarCalificaciones']);
+    Route::get('docente/reportes/curso/{cursoId}',              [DocenteController::class, 'reporteCurso']);
+    Route::get('docente/reportes/exportar-pdf/{cursoId}',       [DocenteController::class, 'exportarPdfCurso']);
+    Route::get('docente/reportes/exportar-excel/{cursoId}',     [DocenteController::class, 'exportarExcelCurso']);
+
+    // ── Estudiante: reportes ──
+    Route::get('estudiante/reportes',              [EstudianteReporteController::class, 'reporte']);
+    Route::get('estudiante/reportes/exportar-pdf',   [EstudianteReporteController::class, 'exportarPdf']);
+    Route::get('estudiante/reportes/exportar-excel', [EstudianteReporteController::class, 'exportarExcel']);
 });

@@ -25,6 +25,12 @@ import ReporteMaterias from "./pages/docente/ReporteMaterias";
 import ReporteCursos from "./pages/docente/ReporteCursos";
 import ReporteCalificaciones from "./pages/docente/ReporteCalificaciones";
 
+import DashboardDocente from './pages/docente/DashboardDocente.jsx';
+import MisCursos from './pages/docente/MisCursos.jsx';
+import CursoEstudiantes from './pages/docente/CursoEstudiantes.jsx';
+import ReportesDocente from './pages/docente/ReportesDocente.jsx';
+import ReportesEstudiante from './pages/estudiante/ReportesEstudiante.jsx';
+
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/login" replace /> },
   { path: '/login', element: <Login /> },
@@ -105,7 +111,7 @@ const router = createBrowserRouter([
     path: '/docente/bienvenida',
     element: (
       <ProtectedRoute roles={['Docente']}>
-        <Bienvenida />
+        <DashboardDocente />
       </ProtectedRoute>
     ),
   },
@@ -144,6 +150,12 @@ const router = createBrowserRouter([
 },
 { path: '/estudiante/cursos', element: <ProtectedRoute roles={['Estudiante']}><CursosDisponibles /></ProtectedRoute> },
 { path: '/estudiante/inscripciones', element: <ProtectedRoute roles={['Estudiante']}><MisInscripciones /></ProtectedRoute> },
+{ path: '/estudiante/reportes', element: <ProtectedRoute roles={['Estudiante']}><ReportesEstudiante /></ProtectedRoute> },
+
+{ path: '/docente/cursos', element: <ProtectedRoute roles={['Docente']}><MisCursos /></ProtectedRoute> },
+{ path: '/docente/cursos/:id/estudiantes', element: <ProtectedRoute roles={['Docente']}><CursoEstudiantes /></ProtectedRoute> },
+{ path: '/docente/reportes', element: <ProtectedRoute roles={['Docente']}><ReportesDocente /></ProtectedRoute> },
+{ path: '/docente/reportes/curso/:cursoId', element: <ProtectedRoute roles={['Docente']}><ReportesDocente /></ProtectedRoute> },
 
 // dentro del router, agregar estas 3:
 { path: '/admin/perfil',      element: <ProtectedRoute roles={['Administrador']}><Perfil /></ProtectedRoute> },

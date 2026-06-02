@@ -8,6 +8,8 @@ export default function PensumDetalle() {
   const [pensum, setPensum] = useState(null);
   const [loading, setLoading] = useState(true);
   const [materiasPensum, setMateriasPensum] = useState([]);
+  const [toggling, setToggling] = useState(false);
+  const [feedback, setFeedback] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -17,6 +19,22 @@ export default function PensumDetalle() {
       setLoading(false);
     }).catch(() => navigate("/admin/pensum"));
   }, [id]);
+
+  const toggleEstado = async () => {
+    setToggling(true);
+    setFeedback("");
+    try {
+      const nuevoEstado = pensum.estado ? 0 : 1;
+      const res = await api.put(`/pensum/${id}`, { estado: nuevoEstado });
+      setPensum(res.data.data);
+      setFeedback(`Pensum ${nuevoEstado ? "activado" : "desactivado"} correctamente`);
+    } catch (err) {
+      setFeedback(err.response?.data?.message || "Error al actualizar estado");
+    } finally {
+      setToggling(false);
+      setTimeout(() => setFeedback(""), 3000);
+    }
+  };
 
   const preReqNombre = (idPrereq) => {
     if (!idPrereq) return "—";
@@ -56,6 +74,12 @@ export default function PensumDetalle() {
         </div>
       </div>
 
+      {feedback && (
+        <div style={{ padding: "0.65rem 1rem", borderRadius: 8, marginBottom: "1rem", fontSize: "0.85rem", fontWeight: 500, background: feedback.includes("Error") ? "#fef2f2" : "#ecfdf5", border: `1px solid ${feedback.includes("Error") ? "#fecaca" : "#a7f3d0"}`, color: feedback.includes("Error") ? "#dc2626" : "#065f46" }}>
+          {feedback}
+        </div>
+      )}
+
       <div style={styles.infoCard}>
         <div style={styles.infoGrid}>
           <div style={styles.infoItem}>
@@ -79,9 +103,19 @@ export default function PensumDetalle() {
           </div>
           <div style={styles.infoItem}>
             <span style={styles.infoLabel}>Estado</span>
-            <span style={{ ...styles.infoVal, color: pensum.estado ? "#16a34a" : "#dc2626", fontWeight: 600 }}>
+            <span style={{ ...styles.infoVal, color: pensum.estado ? "#16a34a" : "#dc2626", fontWeight: 600, marginRight: 8 }}>
               {pensum.estado ? "Activo" : "Inactivo"}
             </span>
+            <button onClick={toggleEstado} disabled={toggling} style={{
+              marginTop: 4, padding: "0.25rem 0.75rem", fontSize: "0.72rem", fontWeight: 600,
+              background: pensum.estado ? "#fef2f2" : "#ecfdf5",
+              color: pensum.estado ? "#dc2626" : "#065f46",
+              border: `1.5px solid ${pensum.estado ? "#fecaca" : "#a7f3d0"}`,
+              borderRadius: 6, cursor: "pointer", whiteSpace: "nowrap",
+              opacity: toggling ? 0.6 : 1,
+            }}>
+              {toggling ? "..." : pensum.estado ? "Desactivar" : "Activar"}
+            </button>
           </div>
         </div>
         {pensum.descripcion && (
@@ -163,7 +197,7 @@ export default function PensumDetalle() {
 }
 
 const styles = {
-  root: { maxWidth: 960, margin: "0 auto", padding: "2rem 1.5rem", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" },
+  root: { maxWidth: 1100, margin: "0 auto", padding: "2rem 2.5rem", fontFamily: "'DM Sans', 'Segoe UI', sans-serif", background: "#f8fafc", minHeight: "100vh" },
   loader: { textAlign: "center", padding: "4rem", color: "#64748b", fontSize: "1rem" },
   header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "2rem", flexWrap: "wrap", gap: "0.75rem" },
   title: { fontSize: "1.5rem", fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" },

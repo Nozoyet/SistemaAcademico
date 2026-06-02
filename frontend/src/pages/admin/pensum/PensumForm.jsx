@@ -28,6 +28,7 @@ export default function PensumForm() {
   const [selectedExisting, setSelectedExisting] = useState([]);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [prereqOverrides, setPrereqOverrides] = useState({});
+  const [busquedaMateria, setBusquedaMateria] = useState("");
 
   useEffect(() => {
     Promise.all([
@@ -79,6 +80,7 @@ export default function PensumForm() {
     setShowExistingModal(true);
     setSelectedExisting([]);
     setPrereqOverrides({});
+    setBusquedaMateria("");
     if (existingMaterias.length > 0) return;
     setLoadingExisting(true);
     try {
@@ -207,33 +209,47 @@ export default function PensumForm() {
       const pensumId = pensumRes.data.data.id;
 
       const tempAReal = {};
+      const errores = [];
       for (const m of materias) {
-        const payload = {
-          codigo: m.codigo,
-          nombre: m.nombre,
-          creditos: m.creditos,
-          semestre: m.semestre,
-          descripcion: m.descripcion,
-          idPensum: pensumId,
-          idPrerequisito: null,
-          estado: m.estado,
-        };
-        const res = await api.post("/materia", payload);
-        tempAReal[m._tempId] = res.data.data.id;
+        try {
+          const payload = {
+            codigo: m.codigo,
+            nombre: m.nombre,
+            creditos: m.creditos,
+            semestre: m.semestre,
+            descripcion: m.descripcion,
+            idPensum: pensumId,
+            idPrerequisito: null,
+            estado: m.estado,
+          };
+          const res = await api.post("/materia", payload);
+          tempAReal[m._tempId] = res.data.data.id;
+        } catch (err) {
+          errores.push(`${m.codigo} — ${m.nombre}`);
+        }
       }
 
       for (const m of materias) {
-        if (m._prereqTemp) {
+        if (m._prereqTemp && tempAReal[m._tempId]) {
           const realPrereqId = tempAReal[m._prereqTemp];
           if (realPrereqId) {
-            await api.put(`/materia/${tempAReal[m._tempId]}`, { idPrerequisito: realPrereqId });
+            try {
+              await api.put(`/materia/${tempAReal[m._tempId]}`, { idPrerequisito: realPrereqId });
+            } catch (err) {}
           }
         }
       }
 
-      navigate("/admin/pensum");
+      if (errores.length > 0) {
+        setError(`Pensum creado, pero no se pudieron agregar estas materias (código duplicado): ${errores.join(", ")}`);
+        setTimeout(() => navigate("/admin/pensum"), 2000);
+      } else {
+        navigate("/admin/pensum");
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Error al guardar el pensum");
+      setLoading(false);
+      return;
     } finally {
       setLoading(false);
     }
@@ -492,14 +508,32 @@ export default function PensumForm() {
               <button onClick={() => setShowExistingModal(false)} style={styles.modalClose}>✕</button>
             </div>
             <div style={{ padding: "1.25rem", maxHeight: "60vh", overflowY: "auto" }}>
+              <input
+                type="text"
+                placeholder="Buscar materia por nombre..."
+                value={busquedaMateria}
+                onChange={(e) => setBusquedaMateria(e.target.value)}
+                style={{
+                  width: "100%", padding: "0.6rem 0.85rem", marginBottom: "1rem",
+                  border: "1.5px solid #e2e8f0", borderRadius: 8, fontSize: "0.85rem",
+                  color: "#0f172a", background: "#f8fafc", outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
               {loadingExisting ? (
                 <div style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>Cargando materias...</div>
               ) : existingMaterias.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>No hay materias registradas en el sistema.</div>
               ) : (
                 (() => {
+                  const filtradas = existingMaterias.filter((m) =>
+                    !busquedaMateria.trim() || m.nombre.toLowerCase().includes(busquedaMateria.toLowerCase())
+                  );
+                  if (filtradas.length === 0) {
+                    return <div style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>No se encontraron materias con ese nombre.</div>;
+                  }
                   const grupos = {};
-                  existingMaterias.forEach((m) => {
+                  filtradas.forEach((m) => {
                     const key = m.pensum?.carrera?.nombre || "Sin carrera";
                     if (!grupos[key]) grupos[key] = {};
                     const pensumKey = m.pensum ? `Pensum ${m.pensum.anioCreacion}` : "Sin pensum";
@@ -606,7 +640,7 @@ export default function PensumForm() {
 }
 
 const styles = {
-  root: { maxWidth: 960, margin: "0 auto", padding: "2rem 1.5rem", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" },
+  root: { maxWidth: 1100, margin: "0 auto", padding: "2rem 2.5rem", fontFamily: "'DM Sans', 'Segoe UI', sans-serif", background: "#f8fafc", minHeight: "100vh" },
   card: { background: "white", borderRadius: 16, border: "1px solid #e2e8f0", overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" },
   cardHeader: { background: "#1e293b", padding: "1.25rem 1.5rem", borderBottom: "1px solid #e2e8f0" },
   title: { fontSize: "1.15rem", fontWeight: 700, color: "white", margin: 0, letterSpacing: "-0.01em" },
