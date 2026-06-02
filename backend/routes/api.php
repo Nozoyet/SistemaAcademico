@@ -10,6 +10,7 @@ use App\Http\Controllers\MateriaController;
 use App\Http\Controllers\PeriodoAcademicoController;
 use App\Http\Controllers\CursoController;
 use App\Http\Controllers\InscripcionController;
+use App\Http\Controllers\ReporteDocenteController;
 
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
@@ -95,3 +96,22 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('reportes')->group(function
     Route::get('exportar-excel-docentes', [ReporteController::class, 'exportExcelDocentes']);
 });
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/docente/reportes/periodo-academico/preview', [ReporteDocenteController::class, 'previewPeriodoAcademico']);
+    Route::get('/docente/reportes/estudiantes/preview', [ReporteDocenteController::class, 'previewEstudiantes']);
+    Route::get('/docente/reportes/materias/preview', [ReporteDocenteController::class, 'previewMaterias']);
+    Route::get('/docente/reportes/cursos/preview', [ReporteDocenteController::class, 'previewCursos']);
+    Route::get('/docente/reportes/calificaciones/preview', [ReporteDocenteController::class, 'previewCalificaciones']);
+
+    Route::get('/docente/reportes/periodo-academico/pdf', [ReporteDocenteController::class, 'pdfPeriodoAcademico']);
+    Route::get('/docente/reportes/estudiantes/pdf', [ReporteDocenteController::class, 'pdfEstudiantes']);
+    Route::get('/docente/reportes/materias/pdf', [ReporteDocenteController::class, 'pdfMaterias']);
+    Route::get('/docente/reportes/cursos/pdf', [ReporteDocenteController::class, 'pdfCursos']);
+    Route::get('/docente/reportes/calificaciones/pdf', [ReporteDocenteController::class, 'pdfCalificaciones']);
+
+    Route::get('/docente/reportes/periodo-academico/excel', [ReporteDocenteController::class, 'excelPeriodoAcademico']);
+    Route::get('/docente/reportes/estudiantes/excel', [ReporteDocenteController::class, 'excelEstudiantes']);
+    Route::get('/docente/reportes/materias/excel', [ReporteDocenteController::class, 'excelMaterias']);
+    Route::get('/docente/reportes/cursos/excel', [ReporteDocenteController::class, 'excelCursos']);
+    Route::get('/docente/reportes/calificaciones/excel', [ReporteDocenteController::class, 'excelCalificaciones']);
+});

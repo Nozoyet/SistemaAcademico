@@ -56,6 +56,17 @@ const ROL_CONFIG = {
       { label: "Mis cursos", href: "/docente/cursos", icon: "🎓" },
       { label: "Calificaciones", href: "/docente/calificaciones", icon: "✏️" },
       { label: "Horarios", href: "/docente/horarios", icon: "🗓️" },
+      {
+        label: "Reportes",
+        icon: "📊",
+        subLinks: [
+          { label: "Periodo académico", href: "/docente/reportes/periodo-academico", icon: "🗓️" },
+          { label: "Estudiantes", href: "/docente/reportes/estudiantes", icon: "👨‍🎓" },
+          { label: "Materias", href: "/docente/reportes/materias", icon: "📚" },
+          { label: "Cursos", href: "/docente/reportes/cursos", icon: "🎓" },
+          { label: "Calificaciones", href: "/docente/reportes/calificaciones", icon: "📝" }
+        ]
+      },
     ],
   },
   Estudiante: {

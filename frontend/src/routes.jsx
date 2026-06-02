@@ -19,6 +19,12 @@ import ConsultarCursos from './pages/admin/ConsultarCursos.jsx';
 
 import Perfil from './pages/Perfil.jsx';
 
+import ReportePeriodoAcademico from "./pages/docente/ReportePeriodoAcademico";
+import ReporteEstudiantes from "./pages/docente/ReporteEstudiantes";
+import ReporteMaterias from "./pages/docente/ReporteMaterias";
+import ReporteCursos from "./pages/docente/ReporteCursos";
+import ReporteCalificaciones from "./pages/docente/ReporteCalificaciones";
+
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/login" replace /> },
   { path: '/login', element: <Login /> },
@@ -144,6 +150,13 @@ const router = createBrowserRouter([
 { path: '/docente/perfil',    element: <ProtectedRoute roles={['Docente']}><Perfil /></ProtectedRoute> },
 { path: '/estudiante/perfil', element: <ProtectedRoute roles={['Estudiante']}><Perfil /></ProtectedRoute> },
 
+{ path: "/docente/reportes/periodo-academico", element: <ReportePeriodoAcademico /> },
+{ path: "/docente/reportes/estudiantes", element: <ReporteEstudiantes /> },
+{ path: "/docente/reportes/materias", element: <ReporteMaterias /> },
+{ path: "/docente/reportes/cursos", element: <ReporteCursos /> },
+{ path: "/docente/reportes/calificaciones", element: <ReporteCalificaciones /> },
+
 ]);
+
 
 export default router;
