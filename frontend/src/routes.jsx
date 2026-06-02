@@ -8,10 +8,11 @@ import PensumLista from './pages/admin/pensum/PensumLista.jsx';
 import PensumForm from './pages/admin/pensum/PensumForm.jsx';
 import PensumDetalle from './pages/admin/pensum/PensumDetalle.jsx';
 import PensumArbol from './pages/admin/pensum/PensumArbol.jsx';
-import GestionCursos from './pages/admin/GestionCursos.jsx';
 import CursosDisponibles from './pages/estudiante/CursosDisponibles.jsx';
 import MisInscripciones from './pages/estudiante/MisInscripciones.jsx';
 
+import GestionCursos from './pages/admin/GestionCursos.jsx';
+import ConsultarCursos from './pages/admin/ConsultarCursos.jsx'; 
 
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/login" replace /> },
@@ -90,11 +91,19 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  {
-  path: '/admin/cursos',
+ {
+  path: '/admin/cursos/gestion',
   element: (
     <ProtectedRoute roles={['Administrador']}>
       <GestionCursos />
+    </ProtectedRoute>
+  ),
+},
+{
+  path: '/admin/cursos/consulta',
+  element: (
+    <ProtectedRoute roles={['Administrador']}>
+      <ConsultarCursos />
     </ProtectedRoute>
   ),
 },

@@ -1,6 +1,6 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../stores/useAuthStore";
-
 
 const ROL_CONFIG = {
   Administrador: {
@@ -17,11 +17,19 @@ const ROL_CONFIG = {
     greeting: "Panel de Administración",
     desc: "Gestiona carreras, cursos, usuarios y toda la configuración del sistema académico.",
     links: [
-      { label: "Gestionar cursos", href: "/admin/cursos", icon: "📚" },
-    { label: "Usuarios", href: "/admin/GestionarUsuarios", icon: "👥" },
-    { label: "Reportes", href: "/admin/reportes", icon: "📊" },
-    { label: "Gestionar Pensum", href: "/admin/pensum", icon: "🗂️" },
-    { label: "Perfil", href: "/admin/perfil", icon: "👤" },
+      { 
+        label: "Gestionar Oferta Académica", 
+        icon: "📚",
+        // Estructura interna para habilitar el despliegue dinámico
+        subLinks: [
+          { label: "Crear Oferta Académica", href: "/admin/cursos/gestion", icon: "⚙️" },
+          { label: "Consultar Oferta Académica", href: "/admin/cursos/consulta", icon: "🔍" }
+        ]
+      },
+      { label: "Usuarios", href: "/admin/GestionarUsuarios", icon: "👥" },
+      { label: "Reportes", href: "/admin/reportes", icon: "📊" },
+      { label: "Gestionar Pensum", href: "/admin/pensum", icon: "🗂️" },
+      { label: "Perfil", href: "/admin/perfil", icon: "👤" },
     ],
   },
   Docente: {
@@ -66,6 +74,9 @@ const ROL_CONFIG = {
 export default function Bienvenida() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  
+  // Estado para alternar el menú desplegable de cursos
+  const [showCursosMenu, setShowCursosMenu] = useState(false);
 
   const config = ROL_CONFIG[user?.rol] || ROL_CONFIG.Estudiante;
   const hora = new Date().getHours();
@@ -114,21 +125,66 @@ export default function Bienvenida() {
 
           {/* Quick links */}
           <div style={styles.linksGrid}>
-            {config.links.map((link) => (
-              <button
-                key={link.href}
-                onClick={() => navigate(link.href)}
-                style={{ ...styles.linkCard, "--accent": config.color }}
-                onMouseOver={(e) => (e.currentTarget.style.borderColor = config.color)}
-                onMouseOut={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
-              >
-                <span style={styles.linkEmoji}>{link.icon}</span>
-                <span style={styles.linkLabel}>{link.label}</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={config.color} strokeWidth="2.5" style={{ marginLeft: "auto", flexShrink: 0 }}>
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </button>
-            ))}
+            {config.links.map((link, index) => {
+              
+              // Renderizado condicional si el botón posee sub-enlaces
+              if (link.subLinks) {
+                return (
+                  <div key={index} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <button
+                      onClick={() => setShowCursosMenu(!showCursosMenu)}
+                      style={{ ...styles.linkCard, "--accent": config.color }}
+                      onMouseOver={(e) => (e.currentTarget.style.borderColor = config.color)}
+                      onMouseOut={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
+                    >
+                      <span style={styles.linkEmoji}>{link.icon}</span>
+                      <span style={styles.linkLabel}>{link.label}</span>
+                      {/* La flecha rota 90 grados si el menú está activo */}
+                      <svg 
+                        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={config.color} strokeWidth="2.5" 
+                        style={{ marginLeft: "auto", flexShrink: 0, transform: showCursosMenu ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}
+                      >
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </button>
+
+                    {/* Sub-enlaces que aparecen únicamente al hacer clic */}
+                    {showCursosMenu && link.subLinks.map((subLink) => (
+                      <button
+                        key={subLink.href}
+                        onClick={() => navigate(subLink.href)}
+                        style={{ ...styles.linkCard, marginLeft: "1.5rem", width: "calc(100% - 1.5rem)", background: "#ffffff", borderColor: config.accent }}
+                        onMouseOver={(e) => (e.currentTarget.style.borderColor = config.color)}
+                        onMouseOut={(e) => (e.currentTarget.style.borderColor = config.accent)}
+                      >
+                        <span style={styles.linkEmoji}>{subLink.icon}</span>
+                        <span style={{ ...styles.linkLabel, fontSize: "0.85rem" }}>{subLink.label}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={config.color} strokeWidth="2.5" style={{ marginLeft: "auto" }}>
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                );
+              }
+
+              // Renderizado normal para enlaces estándar sin dependencias
+              return (
+                <button
+                  key={link.href}
+                  onClick={() => navigate(link.href)}
+                  style={{ ...styles.linkCard, "--accent": config.color }}
+                  onMouseOver={(e) => (e.currentTarget.style.borderColor = config.color)}
+                  onMouseOut={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
+                >
+                  <span style={styles.linkEmoji}>{link.icon}</span>
+                  <span style={styles.linkLabel}>{link.label}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={config.color} strokeWidth="2.5" style={{ marginLeft: "auto", flexShrink: 0 }}>
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -184,8 +240,7 @@ const styles = {
     fontSize: "0.84rem",
     fontWeight: 500,
     cursor: "pointer",
-  },
-  main: {
+  },  main: {
     maxWidth: 680,
     margin: "0 auto",
     padding: "3rem 1.5rem 2rem",
@@ -236,8 +291,7 @@ const styles = {
     textAlign: "left",
     transition: "border-color .15s, background .15s",
     width: "100%",
-  },
-  linkEmoji: { fontSize: "1.15rem", flexShrink: 0 },
+  },  linkEmoji: { fontSize: "1.15rem", flexShrink: 0 },
   linkLabel: { fontSize: "0.9rem", fontWeight: 500, color: "#1e293b" },
   infoStrip: {
     background: "white",

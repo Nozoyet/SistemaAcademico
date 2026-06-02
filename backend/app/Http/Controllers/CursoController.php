@@ -193,6 +193,7 @@ public function historialPeriodos(Request $request)
             'codigo'      => $periodo->codigo,
             'fechaInicio' => $periodo->fechaInicio,
             'fechaFin'    => $periodo->fechaFin,
+            'idCarrera'   => $periodo->idCarrera,        
             'carrera'     => $periodo->carrera?->nombre,
             'cursos'      => $periodo->cursos->map(function ($c) {
                 return [
