@@ -1,68 +1,259 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import useAuthStore from "../../stores/useAuthStore";
+import ReportePreviewModal from "../../components/common/ReportePreviewModal";
+
+const C = {
+  color: "#0369a1", bg: "#f0f9ff", accent: "#e0f2fe",
+  text: "#0f172a", textSub: "#475569", textMuted: "#94a3b8",
+  border: "#e2e8f0",
+};
 
 export default function ReporteCursos() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
   const [filtros, setFiltros] = useState({ periodo_id: "", materia_id: "", curso_id: "", horario: "", estado: "" });
   const [preview, setPreview] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [generado, setGenerado] = useState(false);
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState("");
 
   const change = (e) => setFiltros({ ...filtros, [e.target.name]: e.target.value });
 
   const generarPreview = async () => {
-    const res = await api.get("/docente/reportes/cursos/preview", { params: filtros });
-    setPreview(res.data.data || []);
+    try {
+      setLoading(true); setError("");
+      const res = await api.get("/docente/reportes/cursos/preview", { params: filtros });
+      setPreview(res.data.data || []);
+      setGenerado(true);
+    } catch (err) {
+      setError("Error: " + (err.response?.data?.message || err.message));
+      setGenerado(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const descargar = (formato) => {
-    const params = new URLSearchParams(filtros).toString();
-    window.open(`${api.defaults.baseURL}/docente/reportes/cursos/${formato}?${params}`, "_blank");
+  const abrirModal = (tipo) => {
+    if (preview.length === 0) return;
+    setModalType(tipo);
+    setShowModal(true);
   };
 
+  const confirmarDescarga = async () => {
+    setShowModal(false);
+    try {
+      const ext = modalType === "pdf" ? "pdf" : "xlsx";
+      const params = new URLSearchParams(filtros).toString();
+      const res = await api.get(`/docente/reportes/cursos/${modalType}?${params}`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `reporte-cursos.${ext}`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError("Error al descargar: " + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login", { replace: true });
+  };
+
+  const columns = [
+    { key: "id", label: "ID", width: "8%" },
+    { key: "materia", label: "Materia", width: "30%", render: (r) => r.materia?.nombre || r.materia || "—" },
+    { key: "periodo", label: "Periodo", width: "18%", render: (r) => r.periodoAcademico?.codigo || r.periodo || "—" },
+    { key: "horario", label: "Horario", width: "20%", render: (r) => r.horario || "—" },
+    { key: "estado", label: "Estado", width: "12%", align: "center", render: (r) => r.estadoA !== undefined ? (r.estadoA ? "Activo" : "Inactivo") : r.estado || "—" },
+  ];
+
+  const infoItems = [{ label: "Total Cursos", value: preview.length }];
+
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Reporte de cursos</h1>
-
-      <div className="bg-white p-5 rounded-lg shadow grid grid-cols-1 md:grid-cols-3 gap-4">
-        <input name="periodo_id" placeholder="ID periodo" value={filtros.periodo_id} onChange={change} className="border p-2 rounded" />
-        <input name="materia_id" placeholder="ID materia" value={filtros.materia_id} onChange={change} className="border p-2 rounded" />
-        <input name="curso_id" placeholder="ID curso" value={filtros.curso_id} onChange={change} className="border p-2 rounded" />
-        <input name="horario" placeholder="Horario" value={filtros.horario} onChange={change} className="border p-2 rounded" />
-        <select name="estado" value={filtros.estado} onChange={change} className="border p-2 rounded">
-          <option value="">Todos</option>
-          <option value="activo">Activo</option>
-          <option value="cerrado">Cerrado</option>
-        </select>
-        <button onClick={generarPreview} className="bg-blue-600 text-white p-2 rounded">Generar previsualización</button>
-      </div>
-
-      <Preview data={preview} onPdf={() => descargar("pdf")} onExcel={() => descargar("excel")} />
-    </div>
-  );
-}
-
-function Preview({ data, onPdf, onExcel }) {
-  if (!data.length) return <p className="text-gray-500">Genere una previsualización antes de descargar.</p>;
-
-  return (
-    <div className="bg-white p-5 rounded-lg shadow">
-      <div className="flex justify-between mb-4">
-        <h2 className="font-semibold">Previsualización</h2>
-        <div className="flex gap-2">
-          <button onClick={onPdf} className="bg-red-600 text-white px-4 py-2 rounded">PDF</button>
-          <button onClick={onExcel} className="bg-green-600 text-white px-4 py-2 rounded">Excel</button>
+    <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
+      <header style={s.header}>
+        <div style={s.headerBrand}>
+          <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+            <rect width="48" height="48" rx="10" fill={C.color} fillOpacity=".12" />
+            <path d="M12 34L24 14L36 34H12Z" stroke={C.color} strokeWidth="2.2" strokeLinejoin="round" fill="none" />
+            <circle cx="24" cy="24" r="3.5" fill={C.color} fillOpacity=".7" />
+          </svg>
+          <span style={{ fontWeight: 700, fontSize: "1rem", color: C.color }}>Sistema Académico</span>
         </div>
-      </div>
-      <Tabla data={data} />
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={() => navigate("/docente/bienvenida")} style={s.backBtn}>
+            <i className="bi bi-arrow-left"></i> Volver
+          </button>
+          <button onClick={handleLogout} style={s.logoutBtn}>Cerrar sesión</button>
+        </div>
+      </header>
+
+      <main style={s.main}>
+        <div style={{ ...s.heroCard, borderTop: `4px solid ${C.color}` }}>
+          <div style={{ ...s.chip, background: C.accent, color: C.color }}>
+            <i className="bi bi-journal-bookmark-fill" style={{fontSize:14}}></i> Reporte de Cursos
+          </div>
+          <h1 style={s.heroTitle}>Reporte de <span style={{ color: C.color }}>Cursos</span></h1>
+          <p style={s.heroDesc}>Consulta los cursos que tienes asignados filtrando por periodo, materia o estado.</p>
+
+          {error && <div style={s.errorBox}><i className="bi bi-exclamation-triangle-fill"></i> {error}</div>}
+
+          <div style={s.filterSection}>
+            <div style={s.filterRow}>
+              <div style={s.filterGroup}>
+                <label style={s.filterLabel}>Periodo académico</label>
+                <input name="periodo_id" value={filtros.periodo_id} onChange={change} placeholder="ID periodo" style={s.filterInput} />
+              </div>
+              <div style={s.filterGroup}>
+                <label style={s.filterLabel}>Materia</label>
+                <input name="materia_id" value={filtros.materia_id} onChange={change} placeholder="ID materia" style={s.filterInput} />
+              </div>
+              <div style={s.filterGroup}>
+                <label style={s.filterLabel}>Curso</label>
+                <input name="curso_id" value={filtros.curso_id} onChange={change} placeholder="ID curso" style={s.filterInput} />
+              </div>
+            </div>
+            <div style={s.filterRow}>
+              <div style={s.filterGroup}>
+                <label style={s.filterLabel}>Horario</label>
+                <input name="horario" value={filtros.horario} onChange={change} placeholder="Horario" style={s.filterInput} />
+              </div>
+              <div style={s.filterGroup}>
+                <label style={s.filterLabel}>Estado</label>
+                <select name="estado" value={filtros.estado} onChange={change} style={s.filterInput}>
+                  <option value="">Todos</option>
+                  <option value="activo">Activo</option>
+                  <option value="cerrado">Cerrado</option>
+                </select>
+              </div>
+              <div style={s.filterGroup}>
+                <label style={{ ...s.filterLabel, visibility: "hidden" }}>Buscar</label>
+                <button onClick={generarPreview} disabled={loading} style={s.searchBtn}>
+                  {loading ? "Generando..." : "Generar previsualización"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {generado && preview.length > 0 && (
+          <div style={s.resultsCard}>
+            <div style={s.resultsHeader}>
+              <h2 style={s.resultsTitle}>Previsualización del reporte</h2>
+              <div style={s.statBadge}>
+                <span style={s.statLabel}>Registros</span>
+                <span style={{ ...s.statValue, color: C.color }}>{preview.length}</span>
+              </div>
+            </div>
+
+            <div style={{ overflowX: "auto" }}>
+              <table style={s.table}>
+                <thead>
+                  <tr>
+                    {columns.map((col) => (
+                      <th key={col.key} style={{ ...s.th, textAlign: col.align || "left", width: col.width }}>
+                        {col.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.map((row, idx) => (
+                    <tr key={idx} style={{ background: idx % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #e2e8f0" }}>
+                      {columns.map((col) => (
+                        <td key={col.key} style={{ ...s.td, textAlign: col.align || "left" }}>
+                          {col.render ? col.render(row) : (row[col.key] ?? "—")}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={s.infoStrip}>
+              <div><span style={s.infoLabel}>Usuario</span><p style={s.infoVal}>{user?.username || "Docente"}</p></div>
+              <div style={s.infoSep} />
+              <div><span style={s.infoLabel}>Correo</span><p style={s.infoVal}>{user?.email || "—"}</p></div>
+              <div style={s.infoSep} />
+              <div><span style={s.infoLabel}>Rol</span><p style={{ ...s.infoVal, color: C.color }}>{user?.rol || "Docente"}</p></div>
+            </div>
+
+            <div style={s.exportSection}>
+              <button onClick={() => abrirModal("pdf")} style={{ ...s.exportBtn, background: "#dc2626" }}>
+                <i className="bi bi-file-earmark-pdf-fill"></i> Descargar PDF
+              </button>
+              <button onClick={() => abrirModal("excel")} style={{ ...s.exportBtn, background: "#16a34a" }}>
+                <i className="bi bi-file-earmark-excel-fill"></i> Descargar Excel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {generado && preview.length === 0 && (
+          <div style={s.emptyCard}>
+            <i className="bi bi-inbox" style={{fontSize:32,color:C.textMuted}}></i>
+            <h3 style={s.emptyTitle}>Sin resultados</h3>
+            <p style={s.emptyDesc}>No se encontraron cursos con los filtros seleccionados.</p>
+          </div>
+        )}
+      </main>
+
+      <ReportePreviewModal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={confirmarDescarga}
+        title="Reporte de Cursos"
+        tipo={modalType}
+        data={preview}
+        columns={columns}
+        infoItems={infoItems}
+      />
     </div>
   );
 }
 
-function Tabla({ data }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full border">
-        <thead><tr>{Object.keys(data[0]).map((k) => <th key={k} className="border p-2 text-left">{k}</th>)}</tr></thead>
-        <tbody>{data.map((row, i) => <tr key={i}>{Object.values(row).map((v, j) => <td key={j} className="border p-2">{String(v ?? "")}</td>)}</tr>)}</tbody>
-      </table>
-    </div>
-  );
-}
+const s = {
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 2rem", background: "white", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 10 },
+  headerBrand: { display: "flex", alignItems: "center", gap: 10 },
+  backBtn: { display: "flex", alignItems: "center", gap: 7, padding: "0.45rem 1rem", border: "1.5px solid #e2e8f0", borderRadius: 8, background: "#f8fafc", color: "#475569", fontSize: "0.84rem", fontWeight: 500, cursor: "pointer" },
+  logoutBtn: { padding: "0.45rem 1rem", border: "1.5px solid #e2e8f0", borderRadius: 8, background: "white", color: "#475569", fontSize: "0.84rem", fontWeight: 500, cursor: "pointer" },
+  main: { maxWidth: 1000, margin: "0 auto", padding: "3rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" },
+  heroCard: { background: "white", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 16px rgba(0,0,0,.06)" },
+  chip: { display: "inline-flex", gap: 8, padding: ".35rem .85rem", borderRadius: 999, fontWeight: 700, fontSize: ".82rem", marginBottom: "1.2rem" },
+  heroTitle: { fontSize: "2rem", fontWeight: 700, color: "#0f172a", margin: "0 0 .6rem" },
+  heroDesc: { color: "#64748b", lineHeight: 1.6, marginBottom: "1.5rem" },
+  errorBox: { display: "flex", alignItems: "center", gap: 10, padding: ".85rem 1rem", background: "#fee2e2", border: "1px solid #fecaca", color: "#991b1b", borderRadius: 10, marginBottom: "1rem", fontSize: ".9rem" },
+  filterSection: { display: "flex", flexDirection: "column", gap: 16, padding: "1.5rem", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12 },
+  filterRow: { display: "flex", gap: 14, flexWrap: "wrap" },
+  filterGroup: { flex: 1, minWidth: 180 },
+  filterLabel: { display: "block", fontSize: ".82rem", fontWeight: 700, color: "#64748b", marginBottom: ".45rem" },
+  filterInput: { width: "100%", padding: ".65rem .8rem", border: "1.5px solid #e2e8f0", borderRadius: 10, fontSize: ".9rem", color: "#1e293b", background: "white", boxSizing: "border-box" },
+  searchBtn: { width: "100%", padding: ".65rem 1rem", background: "#0369a1", color: "white", border: "none", borderRadius: 10, fontWeight: 700, cursor: "pointer", fontSize: ".9rem" },
+  resultsCard: { background: "white", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 16px rgba(0,0,0,.06)" },
+  resultsHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "1rem" },
+  resultsTitle: { fontSize: "1.25rem", fontWeight: 700, color: "#0f172a", margin: 0 },
+  statBadge: { padding: ".6rem 1rem", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, textAlign: "center" },
+  statLabel: { display: "block", fontSize: ".72rem", color: "#94a3b8", fontWeight: 700 },
+  statValue: { display: "block", fontSize: "1.25rem", fontWeight: 800 },
+  table: { width: "100%", borderCollapse: "collapse" },
+  th: { padding: ".85rem 1rem", background: "#f8fafc", borderBottom: "2px solid #e2e8f0", fontSize: ".78rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: ".05em" },
+  td: { padding: ".85rem 1rem", color: "#1e293b", fontSize: ".9rem" },
+  infoStrip: { display: "flex", gap: 24, padding: "1rem 0", marginTop: "1rem", borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0", flexWrap: "wrap" },
+  infoLabel: { fontSize: ".72rem", color: "#94a3b8", fontWeight: 800, textTransform: "uppercase" },
+  infoVal: { margin: ".25rem 0 0", color: "#0f172a", fontWeight: 700 },
+  infoSep: { width: 1, height: 28, background: "#cbd5e1", flexShrink: 0 },
+  exportSection: { display: "flex", gap: 12, marginTop: "1rem" },
+  exportBtn: { display: "flex", alignItems: "center", gap: 8, color: "white", border: "none", borderRadius: 10, padding: ".7rem 1.25rem", fontWeight: 700, cursor: "pointer", fontSize: ".9rem" },
+  emptyCard: { background: "white", borderRadius: 16, padding: "2.5rem", textAlign: "center", boxShadow: "0 2px 16px rgba(0,0,0,.06)" },
+  emptyTitle: { color: "#0f172a", marginBottom: ".5rem" },
+  emptyDesc: { color: "#64748b", margin: 0 },
+};

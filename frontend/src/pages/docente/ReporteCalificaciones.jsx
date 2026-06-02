@@ -2,49 +2,35 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import useAuthStore from "../../stores/useAuthStore";
+import ReportePreviewModal from "../../components/common/ReportePreviewModal";
 
-const DOCENTE_CONFIG = {
-  color: "#2563eb",
-  bg: "#eff6ff",
-  accent: "#dbeafe",
+const C = {
+  color: "#0369a1", bg: "#f0f9ff", accent: "#e0f2fe",
+  text: "#0f172a", textSub: "#475569", textMuted: "#94a3b8",
+  border: "#e2e8f0",
 };
 
-export default function ReporteEstudiantes() {
+export default function ReporteCalificaciones() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-
-  const [filtros, setFiltros] = useState({
-    periodo_id: "",
-    materia_id: "",
-    curso_id: "",
-    estado: "",
-    nombre: "",
-  });
-
+  const [filtros, setFiltros] = useState({ periodo_id: "", materia_id: "", curso_id: "", estado: "", nombre: "" });
   const [preview, setPreview] = useState([]);
-  const [generado, setGenerado] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [generado, setGenerado] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
 
-  const change = (e) => {
-    setFiltros({ ...filtros, [e.target.name]: e.target.value });
-  };
+  const change = (e) => setFiltros({ ...filtros, [e.target.name]: e.target.value });
 
   const generarPreview = async () => {
     try {
-      setLoading(true);
-      setError("");
-
-      const res = await api.get("/docente/reportes/estudiantes/preview", {
-        params: filtros,
-      });
-
+      setLoading(true); setError("");
+      const res = await api.get("/docente/reportes/calificaciones/preview", { params: filtros });
       setPreview(res.data.data || []);
       setGenerado(true);
     } catch (err) {
-      setError("Error al generar la previsualización: " + (err.response?.data?.message || err.message));
+      setError("Error: " + (err.response?.data?.message || err.message));
       setGenerado(false);
     } finally {
       setLoading(false);
@@ -57,10 +43,23 @@ export default function ReporteEstudiantes() {
     setShowModal(true);
   };
 
-  const confirmarDescarga = () => {
-    const params = new URLSearchParams(filtros).toString();
-    window.open(`${api.defaults.baseURL}/docente/reportes/estudiantes/${modalType}?${params}`, "_blank");
+  const confirmarDescarga = async () => {
     setShowModal(false);
+    try {
+      const ext = modalType === "pdf" ? "pdf" : "xlsx";
+      const params = new URLSearchParams(filtros).toString();
+      const res = await api.get(`/docente/reportes/calificaciones/${modalType}?${params}`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `reporte-calificaciones.${ext}`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError("Error al descargar: " + (err.response?.data?.message || err.message));
+    }
   };
 
   const handleLogout = async () => {
@@ -68,234 +67,220 @@ export default function ReporteEstudiantes() {
     navigate("/login", { replace: true });
   };
 
-  return (
-    <div style={{ ...styles.root, background: DOCENTE_CONFIG.bg }}>
-      <header style={styles.header}>
-        <div style={styles.headerBrand}>
-          <div style={{ ...styles.logoBox, background: DOCENTE_CONFIG.accent }}>
-            <span style={{ color: DOCENTE_CONFIG.color, fontSize: 20 }}>📊</span>
-          </div>
-          <span style={{ ...styles.headerTitle, color: DOCENTE_CONFIG.color }}>
-            Sistema Académico
-          </span>
-        </div>
+  const aprobados = preview.filter((r) => {
+    const nota = Number(r.notaFinal || r.nota || 0);
+    return nota >= 51;
+  }).length;
 
-        <div style={styles.headerActions}>
-          <button onClick={() => navigate("/docente")} style={styles.backBtn}>
-            ← Volver
+  const reprobados = preview.filter((r) => {
+    const nota = Number(r.notaFinal || r.nota || 0);
+    return nota > 0 && nota < 51;
+  }).length;
+
+  const columns = [
+    { key: "estudiante", label: "Estudiante", width: "30%", render: (r) => r.estudiante?.nombre || r.estudiante || "—" },
+    { key: "curso", label: "Curso", width: "26%", render: (r) => r.curso?.materia?.nombre || r.curso || "—" },
+    { key: "notaFinal", label: "Nota", width: "14%", align: "center", render: (r) => {
+      const nota = r.notaFinal ?? r.nota;
+      return nota !== null && nota !== undefined ? Number(nota).toFixed(1) : "—";
+    }},
+    { key: "estado", label: "Estado", width: "14%", align: "center", render: (r) => {
+      const nota = Number(r.notaFinal || r.nota || 0);
+      if (nota >= 51) return "Aprobado";
+      if (nota > 0 && nota < 51) return "Reprobado";
+      return "Cursando";
+    }},
+  ];
+
+  const infoItems = [
+    { label: "Total Calificaciones", value: preview.length },
+    { label: "Aprobados", value: aprobados },
+    { label: "Reprobados", value: reprobados },
+  ];
+
+  return (
+    <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
+      <header style={s.header}>
+        <div style={s.headerBrand}>
+          <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+            <rect width="48" height="48" rx="10" fill={C.color} fillOpacity=".12" />
+            <path d="M12 34L24 14L36 34H12Z" stroke={C.color} strokeWidth="2.2" strokeLinejoin="round" fill="none" />
+            <circle cx="24" cy="24" r="3.5" fill={C.color} fillOpacity=".7" />
+          </svg>
+          <span style={{ fontWeight: 700, fontSize: "1rem", color: C.color }}>Sistema Académico</span>
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={() => navigate("/docente/reportes")} style={s.backBtn}>
+            <i className="bi bi-arrow-left"></i> Volver
           </button>
-          <button onClick={handleLogout} style={styles.logoutBtn}>
-            Cerrar sesión
-          </button>
+          <button onClick={handleLogout} style={s.logoutBtn}>Cerrar sesión</button>
         </div>
       </header>
 
-      <main style={styles.main}>
-        <section style={{ ...styles.heroCard, borderTop: `4px solid ${DOCENTE_CONFIG.color}` }}>
-          <div style={{ ...styles.roleChip, background: DOCENTE_CONFIG.accent, color: DOCENTE_CONFIG.color }}>
-            👨‍🎓 Reporte de Estudiantes
+      <main style={s.main}>
+        <div style={{ ...s.heroCard, borderTop: `4px solid ${C.color}` }}>
+          <div style={{ ...s.chip, background: C.accent, color: C.color }}>
+            <i className="bi bi-clipboard-data-fill" style={{fontSize:14}}></i> Reporte de Calificaciones
           </div>
+          <h1 style={s.heroTitle}>Reporte de <span style={{ color: C.color }}>Calificaciones</span></h1>
+          <p style={s.heroDesc}>Consulta las calificaciones de los estudiantes filtrando por periodo, materia o curso.</p>
 
-          <h1 style={styles.heroTitle}>
-            Reporte de <span style={{ color: DOCENTE_CONFIG.color }}>Estudiantes</span>
-          </h1>
+          {error && <div style={s.errorBox}><i className="bi bi-exclamation-triangle-fill"></i> {error}</div>}
 
-          <p style={styles.heroDesc}>
-            Consulta estudiantes inscritos en tus cursos asignados usando filtros. Primero se genera una previsualización y luego puedes descargar en PDF o Excel.
-          </p>
-
-          {error && <div style={styles.errorBox}>{error}</div>}
-
-          <div style={styles.filterSection}>
-            <div style={styles.filterRow}>
-              <div style={styles.filterGroup}>
-                <label style={styles.filterLabel}>Periodo académico</label>
-                <input name="periodo_id" value={filtros.periodo_id} onChange={change} placeholder="ID periodo" style={styles.filterInput} />
+          <div style={s.filterSection}>
+            <div style={s.filterRow}>
+              <div style={s.filterGroup}>
+                <label style={s.filterLabel}>Periodo académico</label>
+                <input name="periodo_id" value={filtros.periodo_id} onChange={change} placeholder="ID periodo" style={s.filterInput} />
               </div>
-
-              <div style={styles.filterGroup}>
-                <label style={styles.filterLabel}>Materia</label>
-                <input name="materia_id" value={filtros.materia_id} onChange={change} placeholder="ID materia" style={styles.filterInput} />
+              <div style={s.filterGroup}>
+                <label style={s.filterLabel}>Materia</label>
+                <input name="materia_id" value={filtros.materia_id} onChange={change} placeholder="ID materia" style={s.filterInput} />
               </div>
-
-              <div style={styles.filterGroup}>
-                <label style={styles.filterLabel}>Curso</label>
-                <input name="curso_id" value={filtros.curso_id} onChange={change} placeholder="ID curso" style={styles.filterInput} />
+              <div style={s.filterGroup}>
+                <label style={s.filterLabel}>Curso</label>
+                <input name="curso_id" value={filtros.curso_id} onChange={change} placeholder="ID curso" style={s.filterInput} />
               </div>
             </div>
-
-            <div style={styles.filterRow}>
-              <div style={styles.filterGroup}>
-                <label style={styles.filterLabel}>Nombre estudiante</label>
-                <input name="nombre" value={filtros.nombre} onChange={change} placeholder="Buscar por nombre" style={styles.filterInput} />
+            <div style={s.filterRow}>
+              <div style={s.filterGroup}>
+                <label style={s.filterLabel}>Nombre estudiante</label>
+                <input name="nombre" value={filtros.nombre} onChange={change} placeholder="Buscar por nombre" style={s.filterInput} />
               </div>
-
-              <div style={styles.filterGroup}>
-                <label style={styles.filterLabel}>Estado</label>
-                <select name="estado" value={filtros.estado} onChange={change} style={styles.filterInput}>
+              <div style={s.filterGroup}>
+                <label style={s.filterLabel}>Estado</label>
+                <select name="estado" value={filtros.estado} onChange={change} style={s.filterInput}>
                   <option value="">Todos</option>
-                  <option value="inscrito">Inscrito</option>
-                  <option value="retirado">Retirado</option>
+                  <option value="aprobado">Aprobado</option>
+                  <option value="reprobado">Reprobado</option>
+                  <option value="cursando">Cursando</option>
                 </select>
               </div>
-
-              <div style={styles.filterGroup}>
-                <label style={{ ...styles.filterLabel, visibility: "hidden" }}>Buscar</label>
-                <button onClick={generarPreview} disabled={loading} style={styles.searchBtn}>
+              <div style={s.filterGroup}>
+                <label style={{ ...s.filterLabel, visibility: "hidden" }}>Buscar</label>
+                <button onClick={generarPreview} disabled={loading} style={s.searchBtn}>
                   {loading ? "Generando..." : "Generar previsualización"}
                 </button>
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
         {generado && preview.length > 0 && (
-          <section style={styles.resultsCard}>
-            <div style={styles.resultsHeader}>
-              <h2 style={styles.resultsTitle}>Previsualización del reporte</h2>
-              <div style={styles.statBadge}>
-                <span style={styles.statLabel}>Total</span>
-                <span style={{ ...styles.statValue, color: DOCENTE_CONFIG.color }}>{preview.length}</span>
+          <div style={s.resultsCard}>
+            <div style={s.resultsHeader}>
+              <h2 style={s.resultsTitle}>Previsualización del reporte</h2>
+              <div style={s.statBadge}>
+                <span style={s.statLabel}>Registros</span>
+                <span style={{ ...s.statValue, color: C.color }}>{preview.length}</span>
               </div>
             </div>
 
-            <TablaEstudiantes data={preview} />
-
-            <div style={styles.infoStrip}>
-              <div>
-                <span style={styles.infoLabel}>Usuario</span>
-                <p style={styles.infoVal}>{user?.username || user?.name || "Docente"}</p>
-              </div>
-              <div>
-                <span style={styles.infoLabel}>Correo</span>
-                <p style={styles.infoVal}>{user?.email || "Sin correo"}</p>
-              </div>
-              <div>
-                <span style={styles.infoLabel}>Rol</span>
-                <p style={{ ...styles.infoVal, color: DOCENTE_CONFIG.color }}>{user?.rol || "Docente"}</p>
-              </div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={s.table}>
+                <thead>
+                  <tr>
+                    {columns.map((col) => (
+                      <th key={col.key} style={{ ...s.th, textAlign: col.align || "left", width: col.width }}>
+                        {col.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.map((row, idx) => {
+                    const nota = Number(row.notaFinal || row.nota || 0);
+                    const estado = nota >= 51 ? "Aprobado" : nota > 0 && nota < 51 ? "Reprobado" : "Cursando";
+                    const ec = estado === "Aprobado" ? "#059669" : estado === "Reprobado" ? "#dc2626" : "#d97706";
+                    return (
+                      <tr key={idx} style={{ background: idx % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #e2e8f0" }}>
+                        {columns.map((col) => (
+                          <td key={col.key} style={{ ...s.td, textAlign: col.align || "left" }}>
+                            {col.render ? col.render(row) : (row[col.key] ?? "—")}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
 
-            <div style={styles.exportSection}>
-              <button onClick={() => abrirModal("pdf")} style={{ ...styles.exportBtn, background: "#dc2626" }}>
-                Descargar PDF
+            <div style={s.infoStrip}>
+              <div><span style={s.infoLabel}>Usuario</span><p style={s.infoVal}>{user?.username || "Docente"}</p></div>
+              <div style={s.infoSep} />
+              <div><span style={s.infoLabel}>Correo</span><p style={s.infoVal}>{user?.email || "—"}</p></div>
+              <div style={s.infoSep} />
+              <div><span style={s.infoLabel}>Rol</span><p style={{ ...s.infoVal, color: C.color }}>{user?.rol || "Docente"}</p></div>
+            </div>
+
+            <div style={s.exportSection}>
+              <button onClick={() => abrirModal("pdf")} style={{ ...s.exportBtn, background: "#dc2626" }}>
+                <i className="bi bi-file-earmark-pdf-fill"></i> Descargar PDF
               </button>
-              <button onClick={() => abrirModal("excel")} style={{ ...styles.exportBtn, background: "#16a34a" }}>
-                Descargar Excel
-              </button>
-            </div>
-          </section>
-        )}
-
-        {generado && preview.length === 0 && (
-          <section style={styles.emptyStateCard}>
-            <h3 style={styles.emptyStateTitle}>Sin resultados</h3>
-            <p style={styles.emptyStateDesc}>No se encontraron estudiantes con los filtros seleccionados.</p>
-          </section>
-        )}
-      </main>
-
-      {showModal && (
-        <div style={styles.modalBackdrop} onClick={() => setShowModal(false)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>Previsualización - Exportar {modalType.toUpperCase()}</h3>
-              <button onClick={() => setShowModal(false)} style={styles.closeBtn}>×</button>
-            </div>
-
-            <div style={styles.modalBody}>
-              <div style={styles.previewInfo}>
-                <strong>Total registros:</strong> {preview.length}
-              </div>
-              <TablaEstudiantes data={preview} compact />
-            </div>
-
-            <div style={styles.modalFooter}>
-              <button onClick={() => setShowModal(false)} style={styles.cancelBtn}>Cancelar</button>
-              <button onClick={confirmarDescarga} style={{ ...styles.confirmBtn, background: DOCENTE_CONFIG.color }}>
-                Confirmar descarga
+              <button onClick={() => abrirModal("excel")} style={{ ...s.exportBtn, background: "#16a34a" }}>
+                <i className="bi bi-file-earmark-excel-fill"></i> Descargar Excel
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {generado && preview.length === 0 && (
+          <div style={s.emptyCard}>
+            <i className="bi bi-inbox" style={{fontSize:32,color:C.textMuted}}></i>
+            <h3 style={s.emptyTitle}>Sin resultados</h3>
+            <p style={s.emptyDesc}>No se encontraron calificaciones con los filtros seleccionados.</p>
+          </div>
+        )}
+      </main>
+
+      <ReportePreviewModal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={confirmarDescarga}
+        title="Reporte de Calificaciones"
+        tipo={modalType}
+        data={preview}
+        columns={columns}
+        infoItems={infoItems}
+      />
     </div>
   );
 }
 
-function TablaEstudiantes({ data, compact = false }) {
-  return (
-    <div style={{ overflowX: "auto", maxHeight: compact ? 360 : "none", overflowY: compact ? "auto" : "visible" }}>
-      <table style={styles.table}>
-        <thead>
-          <tr>
-            {Object.keys(data[0]).map((key) => (
-              <th key={key} style={styles.tableHeaderCell}>{key}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, index) => (
-            <tr key={index} style={{ background: index % 2 === 0 ? "#f8fafc" : "white" }}>
-              {Object.values(row).map((value, i) => (
-                <td key={i} style={styles.tableCell}>
-                  {typeof value === "object" ? JSON.stringify(value) : String(value ?? "")}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-const styles = {
-  root: { minHeight: "100vh", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" },
+const s = {
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 2rem", background: "white", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 10 },
   headerBrand: { display: "flex", alignItems: "center", gap: 10 },
-  logoBox: { width: 38, height: 38, borderRadius: 10, display: "grid", placeItems: "center" },
-  headerTitle: { fontWeight: 700, fontSize: "1rem" },
-  headerActions: { display: "flex", gap: 10 },
-  backBtn: { padding: "0.5rem 1rem", border: "1px solid #e2e8f0", borderRadius: 8, background: "#f8fafc", cursor: "pointer" },
-  logoutBtn: { padding: "0.5rem 1rem", border: "1px solid #e2e8f0", borderRadius: 8, background: "white", cursor: "pointer" },
-  main: { maxWidth: 1100, margin: "0 auto", padding: "3rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" },
+  backBtn: { display: "flex", alignItems: "center", gap: 7, padding: "0.45rem 1rem", border: "1.5px solid #e2e8f0", borderRadius: 8, background: "#f8fafc", color: "#475569", fontSize: "0.84rem", fontWeight: 500, cursor: "pointer" },
+  logoutBtn: { padding: "0.45rem 1rem", border: "1.5px solid #e2e8f0", borderRadius: 8, background: "white", color: "#475569", fontSize: "0.84rem", fontWeight: 500, cursor: "pointer" },
+  main: { maxWidth: 1000, margin: "0 auto", padding: "3rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" },
   heroCard: { background: "white", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 16px rgba(0,0,0,.06)" },
-  roleChip: { display: "inline-flex", gap: 8, padding: ".35rem .85rem", borderRadius: 999, fontWeight: 700, fontSize: ".82rem", marginBottom: "1.2rem" },
+  chip: { display: "inline-flex", gap: 8, padding: ".35rem .85rem", borderRadius: 999, fontWeight: 700, fontSize: ".82rem", marginBottom: "1.2rem" },
   heroTitle: { fontSize: "2rem", fontWeight: 700, color: "#0f172a", margin: "0 0 .6rem" },
   heroDesc: { color: "#64748b", lineHeight: 1.6, marginBottom: "1.5rem" },
-  errorBox: { padding: ".85rem 1rem", background: "#fee2e2", border: "1px solid #fecaca", color: "#991b1b", borderRadius: 10, marginBottom: "1rem" },
+  errorBox: { display: "flex", alignItems: "center", gap: 10, padding: ".85rem 1rem", background: "#fee2e2", border: "1px solid #fecaca", color: "#991b1b", borderRadius: 10, marginBottom: "1rem", fontSize: ".9rem" },
   filterSection: { display: "flex", flexDirection: "column", gap: 16, padding: "1.5rem", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12 },
   filterRow: { display: "flex", gap: 14, flexWrap: "wrap" },
   filterGroup: { flex: 1, minWidth: 180 },
   filterLabel: { display: "block", fontSize: ".82rem", fontWeight: 700, color: "#64748b", marginBottom: ".45rem" },
-  filterInput: { width: "100%", padding: ".65rem .8rem", border: "1.5px solid #e2e8f0", borderRadius: 10, boxSizing: "border-box" },
-  searchBtn: { width: "100%", padding: ".65rem 1rem", background: "#2563eb", color: "white", border: "none", borderRadius: 10, fontWeight: 700, cursor: "pointer" },
+  filterInput: { width: "100%", padding: ".65rem .8rem", border: "1.5px solid #e2e8f0", borderRadius: 10, fontSize: ".9rem", color: "#1e293b", background: "white", boxSizing: "border-box" },
+  searchBtn: { width: "100%", padding: ".65rem 1rem", background: "#0369a1", color: "white", border: "none", borderRadius: 10, fontWeight: 700, cursor: "pointer", fontSize: ".9rem" },
   resultsCard: { background: "white", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 16px rgba(0,0,0,.06)" },
   resultsHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "1rem" },
-  resultsTitle: { fontSize: "1.25rem", fontWeight: 700, color: "#0f172a" },
+  resultsTitle: { fontSize: "1.25rem", fontWeight: 700, color: "#0f172a", margin: 0 },
   statBadge: { padding: ".6rem 1rem", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, textAlign: "center" },
   statLabel: { display: "block", fontSize: ".72rem", color: "#94a3b8", fontWeight: 700 },
   statValue: { display: "block", fontSize: "1.25rem", fontWeight: 800 },
   table: { width: "100%", borderCollapse: "collapse" },
-  tableHeaderCell: { padding: ".8rem 1rem", background: "#f8fafc", borderBottom: "2px solid #e2e8f0", textAlign: "left", fontSize: ".78rem", fontWeight: 800, color: "#475569", textTransform: "uppercase" },
-  tableCell: { padding: ".85rem 1rem", borderBottom: "1px solid #e2e8f0", color: "#1e293b", fontSize: ".9rem" },
+  th: { padding: ".85rem 1rem", background: "#f8fafc", borderBottom: "2px solid #e2e8f0", fontSize: ".78rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: ".05em" },
+  td: { padding: ".85rem 1rem", color: "#1e293b", fontSize: ".9rem" },
   infoStrip: { display: "flex", gap: 24, padding: "1rem 0", marginTop: "1rem", borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0", flexWrap: "wrap" },
   infoLabel: { fontSize: ".72rem", color: "#94a3b8", fontWeight: 800, textTransform: "uppercase" },
   infoVal: { margin: ".25rem 0 0", color: "#0f172a", fontWeight: 700 },
+  infoSep: { width: 1, height: 28, background: "#cbd5e1", flexShrink: 0 },
   exportSection: { display: "flex", gap: 12, marginTop: "1rem" },
-  exportBtn: { color: "white", border: "none", borderRadius: 10, padding: ".7rem 1.25rem", fontWeight: 700, cursor: "pointer" },
-  emptyStateCard: { background: "white", borderRadius: 16, padding: "2.5rem", textAlign: "center", boxShadow: "0 2px 16px rgba(0,0,0,.06)" },
-  emptyStateTitle: { color: "#0f172a", marginBottom: ".5rem" },
-  emptyStateDesc: { color: "#64748b" },
-  modalBackdrop: { position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 1000, padding: "30px 15px", overflowY: "auto" },
-  modalContent: { maxWidth: 1000, margin: "0 auto", background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,.2)" },
-  modalHeader: { display: "flex", justifyContent: "space-between", padding: "1rem 1.25rem", borderBottom: "1px solid #e2e8f0" },
-  modalTitle: { margin: 0, fontSize: "1.05rem", color: "#0f172a" },
-  closeBtn: { border: "none", background: "transparent", fontSize: 24, cursor: "pointer" },
-  modalBody: { padding: "1.25rem" },
-  previewInfo: { padding: ".75rem 1rem", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, marginBottom: 12 },
-  modalFooter: { display: "flex", justifyContent: "flex-end", gap: 10, padding: "1rem 1.25rem", borderTop: "1px solid #e2e8f0" },
-  cancelBtn: { padding: ".55rem 1.25rem", borderRadius: 10, border: "1px solid #cbd5e1", background: "white", cursor: "pointer", fontWeight: 700 },
-  confirmBtn: { padding: ".55rem 1.25rem", borderRadius: 10, border: "none", color: "white", cursor: "pointer", fontWeight: 700 },
+  exportBtn: { display: "flex", alignItems: "center", gap: 8, color: "white", border: "none", borderRadius: 10, padding: ".7rem 1.25rem", fontWeight: 700, cursor: "pointer", fontSize: ".9rem" },
+  emptyCard: { background: "white", borderRadius: 16, padding: "2.5rem", textAlign: "center", boxShadow: "0 2px 16px rgba(0,0,0,.06)" },
+  emptyTitle: { color: "#0f172a", marginBottom: ".5rem" },
+  emptyDesc: { color: "#64748b", margin: 0 },
 };

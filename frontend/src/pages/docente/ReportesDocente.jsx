@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { docenteService } from "../../services/docenteService";
 import useAuthStore from "../../stores/useAuthStore";
+import ReportePreviewModal from "../../components/common/ReportePreviewModal";
 
 const C = {
   bg: "#f0f9ff", surface: "#ffffff", border: "#e0f2fe", borderMid: "#bae6fd",
@@ -20,7 +21,8 @@ export default function ReportesDocente() {
   const [loading, setLoading] = useState(false);
   const [loadingCursos, setLoadingCursos] = useState(true);
   const [error, setError] = useState("");
-  const [hoverPreview, setHoverPreview] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState("");
 
   useEffect(() => {
     docenteService.obtenerCursos()
@@ -176,136 +178,14 @@ export default function ReportesDocente() {
             </div>
 
             <div style={{ display: "flex", gap: 10 }}>
-              <div style={{ position: "relative" }}>
-                <button
-                  onMouseEnter={() => setHoverPreview("pdf")}
-                  onMouseLeave={() => setHoverPreview(null)}
-                  onClick={() => docenteService.exportarPDF(cursoSeleccionado)}
-                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.65rem 1.25rem", background: "#dc2626", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
-                  Descargar PDF
-                </button>
-                {hoverPreview === "pdf" && (
-                  <div style={{ position: "absolute", bottom: "100%", right: 0, marginBottom: 10, width: 460, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e2e8f0", overflow: "hidden", zIndex: 100 }}>
-                    <div style={{ padding: "10px 14px", background: "#fef2f2", borderBottom: "1px solid #fecaca", display: "flex", alignItems: "center", gap: 8 }}>
-                      <i className="bi bi-file-earmark-pdf-fill" style={{fontSize:16,color:"#dc2626"}}></i>
-                      <span style={{ fontWeight: 700, fontSize: 13, color: "#dc2626" }}>Vista previa PDF</span>
-                    </div>
-                    <div style={{ padding: "12px 16px", maxHeight: 320, overflowY: "auto" }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", marginBottom: 2 }}>Reporte de Calificaciones</div>
-                      <div style={{ fontSize: 10, color: "#64748b", marginBottom: 12 }}>Documento generado el {new Date().toLocaleDateString("es-BO")}</div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 12 }}>
-                        {[
-                          { label: "Materia", value: `${reporte.curso?.materia || ""} - Grupo ${reporte.curso?.codigoGrupo || ""}` },
-                          { label: "Docente", value: reporte.curso?.docente || "—" },
-                          { label: "Período", value: reporte.curso?.periodo || "—" },
-                          { label: "Carrera", value: reporte.curso?.carrera || "—" },
-                        ].map(item => (
-                          <div key={item.label} style={{ background: "#f8fafc", padding: "7px 10px", borderRadius: 6, borderLeft: "3px solid #0369a1" }}>
-                            <div style={{ fontSize: 9, color: "#94a3b8", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>{item.label}</div>
-                            <div style={{ fontSize: 11, color: "#1e293b", fontWeight: 500, marginTop: 1 }}>{item.value}</div>
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                        {[
-                          { label: "Aprobados", value: reporte.resumen?.aprobados || 0, bg: "#d1fae5", color: "#059669" },
-                          { label: "Reprobados", value: reporte.resumen?.reprobados || 0, bg: "#fee2e2", color: "#dc2626" },
-                          { label: "Cursando", value: reporte.resumen?.cursando || 0, bg: "#fef3c7", color: "#d97706" },
-                        ].map(s => (
-                          <div key={s.label} style={{ flex: 1, textAlign: "center", padding: "8px 4px", background: s.bg, borderRadius: 8 }}>
-                            <div style={{ fontSize: 18, fontWeight: 800, color: s.color }}>{s.value}</div>
-                            <div style={{ fontSize: 9, color: s.color, fontWeight: 600, textTransform: "uppercase" }}>{s.label}</div>
-                          </div>
-                        ))}
-                      </div>
-                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
-                        <thead>
-                          <tr style={{ background: "#0369a1" }}>
-                            {["Matrícula", "Estudiante", "Nota", "Estado"].map(h => (
-                              <th key={h} style={{ padding: "6px 10px", textAlign: h === "Nota" || h === "Estado" ? "center" : "left", color: "white", fontWeight: 600, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.3px" }}>{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {reporte.estudiantes?.slice(0, 5).map((e, i) => {
-                            const ec = e.estado === "Aprobado" ? "#059669" : e.estado === "Reprobado" ? "#dc2626" : "#d97706";
-                            return (
-                              <tr key={i} style={{ borderBottom: "1px solid #e2e8f0", background: i % 2 === 0 ? "#f8fafc" : "#ffffff" }}>
-                                <td style={{ padding: "5px 10px", color: "#64748b" }}>{e.matricula || "—"}</td>
-                                <td style={{ padding: "5px 10px", color: "#0f172a", fontWeight: 500 }}>{e.estudiante}</td>
-                                <td style={{ padding: "5px 10px", textAlign: "center", fontWeight: 700, color: e.notaFinal !== null ? "#0f172a" : "#94a3b8" }}>{e.notaFinal !== null ? Number(e.notaFinal).toFixed(1) : "—"}</td>
-                                <td style={{ padding: "5px 10px", textAlign: "center" }}>
-                                  <span style={{ background: ec + "18", color: ec, borderRadius: 999, padding: "1px 10px", fontSize: 10, fontWeight: 600 }}>{e.estado}</span>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                      {(reporte.estudiantes?.length || 0) > 5 && (
-                        <div style={{ textAlign: "center", fontSize: 10, color: "#94a3b8", padding: "5px 0 0" }}>... y {reporte.estudiantes.length - 5} más</div>
-                      )}
-                      <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid #e2e8f0", fontSize: 10, color: "#64748b", display: "flex", justifyContent: "space-between" }}>
-                        <span><strong>Promedio General:</strong> {reporte.resumen?.promedio ? Number(reporte.resumen.promedio).toFixed(1) : "—"}</span>
-                        <span><strong>Total estudiantes:</strong> {reporte.estudiantes?.length || 0}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div style={{ position: "relative" }}>
-                <button
-                  onMouseEnter={() => setHoverPreview("excel")}
-                  onMouseLeave={() => setHoverPreview(null)}
-                  onClick={() => docenteService.exportarExcel(cursoSeleccionado)}
-                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.65rem 1.25rem", background: "#16a34a", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
-                  Descargar Excel
-                </button>
-                {hoverPreview === "excel" && (
-                  <div style={{ position: "absolute", bottom: "100%", right: 0, marginBottom: 10, width: 460, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e2e8f0", overflow: "hidden", zIndex: 100 }}>
-                    <div style={{ padding: "10px 14px", background: "#f0fdf4", borderBottom: "1px solid #bbf7d0", display: "flex", alignItems: "center", gap: 8 }}>
-                      <i className="bi bi-file-earmark-spreadsheet-fill" style={{fontSize:16,color:"#16a34a"}}></i>
-                      <span style={{ fontWeight: 700, fontSize: 13, color: "#16a34a" }}>Vista previa Excel</span>
-                    </div>
-                    <div style={{ padding: "12px 16px", maxHeight: 320, overflowY: "auto" }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>Reporte de Calificaciones</div>
-                      <div style={{ fontSize: 11, color: "#1e293b", marginTop: 4 }}>Curso: {reporte.curso?.materia} - Grupo {reporte.curso?.codigoGrupo}</div>
-                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 10 }}>Docente: {reporte.curso?.docente || "—"} | Período: {reporte.curso?.periodo} | Carrera: {reporte.curso?.carrera || "—"}</div>
-                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
-                        <thead>
-                          <tr>
-                            {["Matrícula", "Estudiante", "Nota Final", "Estado"].map(h => (
-                              <th key={h} style={{ padding: "7px 10px", background: "#0369a1", color: "white", fontWeight: 700, fontSize: 12, textAlign: "center", border: "1px solid #1e40af" }}>{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {reporte.estudiantes?.slice(0, 5).map((e, i) => {
-                            const bg = i % 2 === 0 ? "#f8fafc" : "#ffffff";
-                            return (
-                              <tr key={i}>
-                                <td style={{ padding: "5px 10px", border: "1px solid #e2e8f0", background: bg }}>{e.matricula || "—"}</td>
-                                <td style={{ padding: "5px 10px", border: "1px solid #e2e8f0", background: bg, fontWeight: 500 }}>{e.estudiante}</td>
-                                <td style={{ padding: "5px 10px", border: "1px solid #e2e8f0", background: bg, textAlign: "center", fontWeight: 700 }}>{e.notaFinal !== null ? Number(e.notaFinal).toFixed(1) : "—"}</td>
-                                <td style={{ padding: "5px 10px", border: "1px solid #e2e8f0", background: bg, textAlign: "center" }}>
-                                  <span style={{
-                                    background: (e.estado === "Aprobado" ? "#059669" : e.estado === "Reprobado" ? "#dc2626" : "#d97706") + "18",
-                                    color: e.estado === "Aprobado" ? "#059669" : e.estado === "Reprobado" ? "#dc2626" : "#d97706",
-                                    borderRadius: 999, padding: "1px 10px", fontSize: 10, fontWeight: 600
-                                  }}>{e.estado}</span>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                      {(reporte.estudiantes?.length || 0) > 5 && (
-                        <div style={{ textAlign: "center", fontSize: 10, color: "#94a3b8", padding: "5px 0 0" }}>... y {reporte.estudiantes.length - 5} más</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <button onClick={() => { setModalType("pdf"); setShowModal(true); }}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.65rem 1.25rem", background: "#dc2626", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
+                <i className="bi bi-file-earmark-pdf-fill"></i> Descargar PDF
+              </button>
+              <button onClick={() => { setModalType("excel"); setShowModal(true); }}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.65rem 1.25rem", background: "#16a34a", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
+                <i className="bi bi-file-earmark-excel-fill"></i> Descargar Excel
+              </button>
             </div>
           </div>
         )}
@@ -317,6 +197,47 @@ export default function ReportesDocente() {
           </div>
         )}
       </main>
+
+      <ReportePreviewModal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={async () => {
+          setShowModal(false);
+          try {
+            if (modalType === "pdf") await docenteService.exportarPDF(cursoSeleccionado);
+            else await docenteService.exportarExcel(cursoSeleccionado);
+          } catch (err) {
+            setError("Error al descargar: " + (err.response?.data?.message || err.message));
+          }
+        }}
+        title="Reporte de Calificaciones"
+        tipo={modalType}
+        color="#0369a1"
+        data={reporte?.estudiantes || []}
+        columns={[
+          { key: "matricula", label: "Matrícula", width: "18%" },
+          { key: "estudiante", label: "Estudiante", width: "32%" },
+          { key: "notaFinal", label: "Nota", width: "14%", align: "center", render: (r) => r.notaFinal !== null ? Number(r.notaFinal).toFixed(1) : "—" },
+          { key: "estado", label: "Estado", width: "14%", align: "center" },
+        ]}
+        infoItems={[
+          { label: "Materia", value: reporte?.curso?.materia ? `${reporte.curso.materia} - Grupo ${reporte.curso.codigoGrupo}` : "—" },
+          { label: "Docente", value: reporte?.curso?.docente || "—" },
+          { label: "Periodo", value: reporte?.curso?.periodo || "—" },
+          { label: "Carrera", value: reporte?.curso?.carrera || "—" },
+        ]}
+        stats={[
+          { label: "Aprobados", value: reporte?.resumen?.aprobados || 0, bg: "#d1fae5", text: "#059669" },
+          { label: "Reprobados", value: reporte?.resumen?.reprobados || 0, bg: "#fee2e2", text: "#dc2626" },
+          { label: "Cursando", value: reporte?.resumen?.cursando || 0, bg: "#fef3c7", text: "#d97706" },
+        ]}
+        footerExtra={
+          <>
+            <span><strong>Promedio General:</strong> {reporte?.resumen?.promedio ? Number(reporte.resumen.promedio).toFixed(1) : "—"}</span>
+            <span><strong>Total Estudiantes:</strong> {reporte?.estudiantes?.length || 0}</span>
+          </>
+        }
+      />
     </div>
   );
 }

@@ -99,23 +99,11 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('reportes')->group(function
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/docente/reportes/periodo-academico/preview', [ReporteDocenteController::class, 'previewPeriodoAcademico']);
-    Route::get('/docente/reportes/estudiantes/preview', [ReporteDocenteController::class, 'previewEstudiantes']);
-    Route::get('/docente/reportes/materias/preview', [ReporteDocenteController::class, 'previewMaterias']);
-    Route::get('/docente/reportes/cursos/preview', [ReporteDocenteController::class, 'previewCursos']);
-    Route::get('/docente/reportes/calificaciones/preview', [ReporteDocenteController::class, 'previewCalificaciones']);
+    Route::get('/docente/reportes/{tipo}/preview', [ReporteDocenteController::class, 'preview'])->where('tipo', 'periodo-academico|estudiantes|materias|cursos|calificaciones');
 
-    Route::get('/docente/reportes/periodo-academico/pdf', [ReporteDocenteController::class, 'pdfPeriodoAcademico']);
-    Route::get('/docente/reportes/estudiantes/pdf', [ReporteDocenteController::class, 'pdfEstudiantes']);
-    Route::get('/docente/reportes/materias/pdf', [ReporteDocenteController::class, 'pdfMaterias']);
-    Route::get('/docente/reportes/cursos/pdf', [ReporteDocenteController::class, 'pdfCursos']);
-    Route::get('/docente/reportes/calificaciones/pdf', [ReporteDocenteController::class, 'pdfCalificaciones']);
+    Route::get('/docente/reportes/{tipo}/pdf', [ReporteDocenteController::class, 'exportarPdf'])->where('tipo', 'periodo-academico|estudiantes|materias|cursos|calificaciones');
 
-    Route::get('/docente/reportes/periodo-academico/excel', [ReporteDocenteController::class, 'excelPeriodoAcademico']);
-    Route::get('/docente/reportes/estudiantes/excel', [ReporteDocenteController::class, 'excelEstudiantes']);
-    Route::get('/docente/reportes/materias/excel', [ReporteDocenteController::class, 'excelMaterias']);
-    Route::get('/docente/reportes/cursos/excel', [ReporteDocenteController::class, 'excelCursos']);
-    Route::get('/docente/reportes/calificaciones/excel', [ReporteDocenteController::class, 'excelCalificaciones']);
+    Route::get('/docente/reportes/{tipo}/excel', [ReporteDocenteController::class, 'exportarExcel'])->where('tipo', 'periodo-academico|estudiantes|materias|cursos|calificaciones');
 
     // ── Docente: cursos, estudiantes, calificaciones ──
     Route::get('docente/cursos',                     [DocenteController::class, 'cursos']);

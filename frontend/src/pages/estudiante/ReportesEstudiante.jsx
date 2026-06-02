@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { estudianteService } from "../../services/estudianteService";
 import useAuthStore from "../../stores/useAuthStore";
+import ReportePreviewModal from "../../components/common/ReportePreviewModal";
 
 const C = {
   bg: "#f0fdfa", surface: "#ffffff", border: "#ccfbf1", borderMid: "#99f6e4",
@@ -18,7 +19,8 @@ export default function ReportesEstudiante() {
   const [error, setError] = useState("");
   const [semestreFiltro, setSemestreFiltro] = useState("todos");
   const [estadoFiltro, setEstadoFiltro] = useState("todos");
-  const [hoverPreview, setHoverPreview] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState("");
 
   useEffect(() => {
     cargarReporte();
@@ -49,6 +51,21 @@ export default function ReportesEstudiante() {
     if (estadoFiltro !== "todos" && h.estado !== estadoFiltro) return false;
     return true;
   });
+
+  const abrirModal = (tipo) => {
+    setModalType(tipo);
+    setShowModal(true);
+  };
+
+  const confirmarDescarga = async () => {
+    setShowModal(false);
+    try {
+      if (modalType === "pdf") await estudianteService.exportarPDF();
+      else await estudianteService.exportarExcel();
+    } finally {
+      setModalType("");
+    }
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
@@ -193,142 +210,50 @@ export default function ReportesEstudiante() {
 
             {/* Botones de exportación */}
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-              <div style={{ position: "relative" }}>
-                <button
-                  onMouseEnter={() => setHoverPreview("pdf")}
-                  onMouseLeave={() => setHoverPreview(null)}
-                  onClick={() => estudianteService.exportarPDF()}
-                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.65rem 1.25rem", background: "#dc2626", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
-                  Descargar PDF
-                </button>
-                {hoverPreview === "pdf" && (
-                  <div style={{ position: "absolute", bottom: "100%", right: 0, marginBottom: 10, width: 480, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e2e8f0", overflow: "hidden", zIndex: 100 }}>
-                    <div style={{ padding: "10px 14px", background: "#fef2f2", borderBottom: "1px solid #fecaca", display: "flex", alignItems: "center", gap: 8 }}>
-                      <i className="bi bi-file-earmark-pdf-fill" style={{fontSize:16,color:"#dc2626"}}></i>
-                      <span style={{ fontWeight: 700, fontSize: 13, color: "#dc2626" }}>Vista previa PDF</span>
-                    </div>
-                    <div style={{ padding: "12px 16px", maxHeight: 320, overflowY: "auto" }}>
-                      <div style={{ borderTop: "4px solid #0d9488", marginBottom: 16 }}>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", marginTop: 8 }}>Reporte Académico</div>
-                        <div style={{ fontSize: 10, color: "#64748b", marginTop: 1 }}>Historial completo de calificaciones</div>
-                      </div>
-                      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-                        {[
-                          { label: "Estudiante", value: estudianteData.nombre || user?.nombre1 },
-                          { label: "Matrícula", value: estudianteData.matricula || "—" },
-                          { label: "Carrera", value: estudianteData.carrera || "—" },
-                        ].map(item => (
-                          <div key={item.label} style={{ flex: 1, background: "#f8fafc", padding: "7px 10px", borderRadius: 6, borderLeft: "3px solid #0d9488" }}>
-                            <div style={{ fontSize: 9, color: "#94a3b8", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>{item.label}</div>
-                            <div style={{ fontSize: 11, color: "#1e293b", fontWeight: 500, marginTop: 1 }}>{item.value}</div>
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                        {[
-                          { label: "Aprobadas", value: resumen.aprobadas || 0, bg: "#d1fae5", color: "#059669" },
-                          { label: "Reprobadas", value: resumen.reprobadas || 0, bg: "#fee2e2", color: "#dc2626" },
-                          { label: "Créditos", value: resumen.creditosAcumulados || 0, bg: "#e0f2fe", color: "#0284c7" },
-                        ].map(s => (
-                          <div key={s.label} style={{ flex: 1, textAlign: "center", padding: "8px 4px", background: s.bg, borderRadius: 8 }}>
-                            <div style={{ fontSize: 18, fontWeight: 800, color: s.color }}>{s.value}</div>
-                            <div style={{ fontSize: 9, color: s.color, fontWeight: 600, textTransform: "uppercase" }}>{s.label}</div>
-                          </div>
-                        ))}
-                      </div>
-                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
-                        <thead>
-                          <tr style={{ background: "#0d9488" }}>
-                            {["Código", "Materia", "Créd.", "Nota", "Estado", "Período"].map(h => (
-                              <th key={h} style={{ padding: "6px 8px", textAlign: h === "Materia" || h === "Código" || h === "Período" ? "left" : "center", color: "white", fontWeight: 600, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.3px" }}>{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filtrados.slice(0, 4).map((h, i) => {
-                            const ec = h.estado === "Aprobado" ? "#059669" : h.estado === "Reprobado" ? "#dc2626" : "#d97706";
-                            return (
-                              <tr key={h.id} style={{ borderBottom: "1px solid #e2e8f0", background: i % 2 === 0 ? "#f8fafc" : "#ffffff" }}>
-                                <td style={{ padding: "5px 8px", color: "#64748b" }}>{h.materia?.codigo}</td>
-                                <td style={{ padding: "5px 8px", color: "#0f172a", fontWeight: 500 }}>{h.materia?.nombre}</td>
-                                <td style={{ padding: "5px 8px", textAlign: "center", color: "#64748b" }}>{h.materia?.creditos}</td>
-                                <td style={{ padding: "5px 8px", textAlign: "center", fontWeight: 700, color: h.notaFinal !== null ? (h.notaFinal >= 51 ? "#059669" : "#dc2626") : "#94a3b8" }}>{h.notaFinal !== null ? Number(h.notaFinal).toFixed(1) : "—"}</td>
-                                <td style={{ padding: "5px 8px", textAlign: "center" }}>
-                                  <span style={{ background: ec + "18", color: ec, borderRadius: 999, padding: "1px 10px", fontSize: 10, fontWeight: 600 }}>{h.estado}</span>
-                                </td>
-                                <td style={{ padding: "5px 8px", color: "#64748b" }}>{h.periodo?.codigo || "—"}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                      {filtrados.length > 4 && (
-                        <div style={{ textAlign: "center", fontSize: 10, color: "#94a3b8", padding: "5px 0 0" }}>... y {filtrados.length - 4} más</div>
-                      )}
-                      <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid #e2e8f0", fontSize: 10, color: "#64748b" }}>
-                        <span><strong>Promedio General:</strong> {resumen.promedioGeneral ? Number(resumen.promedioGeneral).toFixed(1) : "—"}</span>
-                        <span style={{ marginLeft: 16 }}><strong>Fecha de generación:</strong> {new Date().toLocaleDateString("es-BO")}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div style={{ position: "relative" }}>
-                <button
-                  onMouseEnter={() => setHoverPreview("excel")}
-                  onMouseLeave={() => setHoverPreview(null)}
-                  onClick={() => estudianteService.exportarExcel()}
-                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.65rem 1.25rem", background: "#16a34a", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
-                  Descargar Excel
-                </button>
-                {hoverPreview === "excel" && (
-                  <div style={{ position: "absolute", bottom: "100%", right: 0, marginBottom: 10, width: 480, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e2e8f0", overflow: "hidden", zIndex: 100 }}>
-                    <div style={{ padding: "10px 14px", background: "#f0fdf4", borderBottom: "1px solid #bbf7d0", display: "flex", alignItems: "center", gap: 8 }}>
-                      <i className="bi bi-file-earmark-spreadsheet-fill" style={{fontSize:16,color:"#16a34a"}}></i>
-                      <span style={{ fontWeight: 700, fontSize: 13, color: "#16a34a" }}>Vista previa Excel</span>
-                    </div>
-                    <div style={{ padding: "12px 16px", maxHeight: 320, overflowY: "auto" }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>Reporte Académico</div>
-                      <div style={{ fontSize: 11, color: "#1e293b", marginTop: 4 }}>Estudiante: {estudianteData.nombre || user?.nombre1}</div>
-                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 10 }}>Matrícula: {estudianteData.matricula || "—"} | Carrera: {estudianteData.carrera || "—"}</div>
-                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
-                        <thead>
-                          <tr>
-                            {["Código", "Materia", "Créditos", "Nota Final", "Estado", "Período"].map(h => (
-                              <th key={h} style={{ padding: "7px 8px", background: "#0d9488", color: "white", fontWeight: 700, fontSize: 12, textAlign: "center", border: "1px solid #0b7a6f" }}>{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filtrados.slice(0, 4).map((h, i) => {
-                            const bg = i % 2 === 0 ? "#f8fafc" : "#ffffff";
-                            return (
-                              <tr key={h.id}>
-                                <td style={{ padding: "5px 8px", border: "1px solid #e2e8f0", background: bg }}>{h.materia?.codigo}</td>
-                                <td style={{ padding: "5px 8px", border: "1px solid #e2e8f0", background: bg, fontWeight: 500 }}>{h.materia?.nombre}</td>
-                                <td style={{ padding: "5px 8px", border: "1px solid #e2e8f0", background: bg, textAlign: "center" }}>{h.materia?.creditos}</td>
-                                <td style={{ padding: "5px 8px", border: "1px solid #e2e8f0", background: bg, textAlign: "center", fontWeight: 700, color: h.notaFinal !== null ? (h.notaFinal >= 51 ? "#059669" : "#dc2626") : "#94a3b8" }}>{h.notaFinal !== null ? Number(h.notaFinal).toFixed(1) : "—"}</td>
-                                <td style={{ padding: "5px 8px", border: "1px solid #e2e8f0", background: bg, textAlign: "center" }}>
-                                  <span style={{
-                                    background: (h.estado === "Aprobado" ? "#059669" : h.estado === "Reprobado" ? "#dc2626" : "#d97706") + "18",
-                                    color: h.estado === "Aprobado" ? "#059669" : h.estado === "Reprobado" ? "#dc2626" : "#d97706",
-                                    borderRadius: 999, padding: "1px 10px", fontSize: 10, fontWeight: 600
-                                  }}>{h.estado}</span>
-                                </td>
-                                <td style={{ padding: "5px 8px", border: "1px solid #e2e8f0", background: bg }}>{h.periodo?.codigo || "—"}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                      {filtrados.length > 4 && (
-                        <div style={{ textAlign: "center", fontSize: 10, color: "#94a3b8", padding: "5px 0 0" }}>... y {filtrados.length - 4} más</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <button onClick={() => abrirModal("pdf")} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.65rem 1.25rem", background: "#dc2626", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
+                <i className="bi bi-file-earmark-pdf-fill"></i> Descargar PDF
+              </button>
+              <button onClick={() => abrirModal("excel")} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.65rem 1.25rem", background: "#16a34a", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
+                <i className="bi bi-file-earmark-spreadsheet-fill"></i> Descargar Excel
+              </button>
             </div>
+
+              <ReportePreviewModal
+                show={showModal}
+                title="Reporte Académico"
+                tipo={modalType}
+                data={filtrados}
+                color="#0d9488"
+                columns={[
+                  { key: "codigo", label: "Código", render: (r) => r.materia?.codigo },
+                  { key: "nombre", label: "Materia", render: (r) => r.materia?.nombre },
+                  { key: "creditos", label: "Créd.", width: "10%", align: "center", render: (r) => r.materia?.creditos },
+                  { key: "notaFinal", label: "Nota", width: "12%", align: "center", render: (r) => r.notaFinal !== null ? Number(r.notaFinal).toFixed(1) : "—" },
+                  { key: "estado", label: "Estado", width: "14%", align: "center", render: (r) => (
+                    <span style={{
+                      background: (r.estado === "Aprobado" ? "#059669" : r.estado === "Reprobado" ? "#dc2626" : "#d97706") + "18",
+                      color: r.estado === "Aprobado" ? "#059669" : r.estado === "Reprobado" ? "#dc2626" : "#d97706",
+                      borderRadius: 999, padding: "2px 12px", fontSize: 11, fontWeight: 600
+                    }}>{r.estado}</span>
+                  )},
+                  { key: "periodo", label: "Período", render: (r) => r.periodo?.codigo || "—" },
+                ]}
+                infoItems={[
+                  { label: "Estudiante", value: estudianteData.nombre || user?.nombre1 },
+                  { label: "Matrícula", value: estudianteData.matricula || "—" },
+                  { label: "Carrera", value: estudianteData.carrera || "—" },
+                ]}
+                stats={[
+                  { label: "Aprobadas", value: resumen.aprobadas || 0, bg: "#d1fae5", color: "#059669" },
+                  { label: "Reprobadas", value: resumen.reprobadas || 0, bg: "#fee2e2", color: "#dc2626" },
+                  { label: "Créditos", value: resumen.creditosAcumulados || 0, bg: "#e0f2fe", color: "#0284c7" },
+                ]}
+                footerExtra={
+                  <span><strong>Promedio General:</strong> {resumen.promedioGeneral ? Number(resumen.promedioGeneral).toFixed(1) : "—"}</span>
+                }
+                onClose={() => { setShowModal(false); setModalType(""); }}
+                onConfirm={confirmarDescarga}
+              />
           </>
         ) : null}
       </main>

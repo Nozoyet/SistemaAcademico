@@ -9,13 +9,28 @@ class ReporteDocenteController extends Controller
 {
     protected $reporteService;
 
+    private $tipoMap = [
+        'periodo-academico' => 'periodo_academico',
+        'estudiantes' => 'estudiantes',
+        'materias' => 'materias',
+        'cursos' => 'cursos',
+        'calificaciones' => 'calificaciones',
+    ];
+
     public function __construct(ReporteDocenteService $reporteService)
     {
         $this->reporteService = $reporteService;
     }
 
-    public function preview(Request $request)
+    public function preview(Request $request, $tipo)
     {
+        $internalTipo = $this->tipoMap[$tipo] ?? null;
+        if (!$internalTipo) {
+            return response()->json(['error' => 'Tipo de reporte inválido'], 400);
+        }
+
+        $request->merge(['tipo' => $internalTipo]);
+
         $request->validate([
             'tipo' => 'required|in:periodo_academico,estudiantes,materias,cursos,calificaciones',
             'periodo_id' => 'nullable|integer',
@@ -38,11 +53,14 @@ class ReporteDocenteController extends Controller
         ]);
     }
 
-    public function exportarPdf(Request $request)
+    public function exportarPdf(Request $request, $tipo)
     {
-        $request->validate([
-            'tipo' => 'required|in:periodo_academico,estudiantes,materias,cursos,calificaciones',
-        ]);
+        $internalTipo = $this->tipoMap[$tipo] ?? null;
+        if (!$internalTipo) {
+            return response()->json(['error' => 'Tipo de reporte inválido'], 400);
+        }
+
+        $request->merge(['tipo' => $internalTipo]);
 
         return $this->reporteService->exportarPdf(
             $request->user(),
@@ -50,11 +68,14 @@ class ReporteDocenteController extends Controller
         );
     }
 
-    public function exportarExcel(Request $request)
+    public function exportarExcel(Request $request, $tipo)
     {
-        $request->validate([
-            'tipo' => 'required|in:periodo_academico,estudiantes,materias,cursos,calificaciones',
-        ]);
+        $internalTipo = $this->tipoMap[$tipo] ?? null;
+        if (!$internalTipo) {
+            return response()->json(['error' => 'Tipo de reporte inválido'], 400);
+        }
+
+        $request->merge(['tipo' => $internalTipo]);
 
         return $this->reporteService->exportarExcel(
             $request->user(),
