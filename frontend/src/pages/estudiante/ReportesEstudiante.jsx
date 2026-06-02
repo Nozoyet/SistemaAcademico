@@ -19,6 +19,8 @@ export default function ReportesEstudiante() {
   const [error, setError] = useState("");
   const [semestreFiltro, setSemestreFiltro] = useState("todos");
   const [estadoFiltro, setEstadoFiltro] = useState("todos");
+  const [periodoFiltro, setPeriodoFiltro] = useState("todos");
+  const [materiaFiltro, setMateriaFiltro] = useState("todos");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
 
@@ -45,10 +47,14 @@ export default function ReportesEstudiante() {
   const estudianteData = data?.estudiante || {};
 
   const semestres = [...new Set(historial.map(h => h.materia?.semestre).filter(Boolean))].sort((a, b) => a - b);
+  const periodos = [...new Set(historial.map(h => h.periodo?.codigo).filter(Boolean))].sort().reverse();
+  const materias = [...new Map(historial.filter(h => h.materia?.id).map(h => [h.materia.id, { id: h.materia.id, nombre: h.materia.nombre, codigo: h.materia.codigo }])).values()].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   const filtrados = historial.filter(h => {
     if (semestreFiltro !== "todos" && String(h.materia?.semestre) !== semestreFiltro) return false;
     if (estadoFiltro !== "todos" && h.estado !== estadoFiltro) return false;
+    if (periodoFiltro !== "todos" && h.periodo?.codigo !== periodoFiltro) return false;
+    if (materiaFiltro !== "todos" && h.materia?.id !== Number(materiaFiltro)) return false;
     return true;
   });
 
@@ -144,7 +150,21 @@ export default function ReportesEstudiante() {
             {/* Filtros */}
             <div style={{ background: "white", border: `1px solid ${C.border}`, borderRadius: 14, padding: "14px 16px", marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
               <span style={{ fontSize: 12, color: C.textMuted, fontWeight: 600 }}>Filtrar:</span>
+
+              <select value={periodoFiltro} onChange={e => setPeriodoFiltro(e.target.value)}
+                style={{ padding: "6px 12px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 12, color: C.textSub, outline: "none", background: "white" }}>
+                <option value="todos">Todos los periodos</option>
+                {periodos.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+
+              <select value={materiaFiltro} onChange={e => setMateriaFiltro(e.target.value)}
+                style={{ padding: "6px 12px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 12, color: C.textSub, outline: "none", background: "white", minWidth: 180 }}>
+                <option value="todos">Todas las materias</option>
+                {materias.map(m => <option key={m.id} value={m.id}>{m.codigo} - {m.nombre}</option>)}
+              </select>
+
               <div style={{ display: "flex", gap: 6 }}>
+                <span style={{ fontSize: 12, color: C.textMuted, fontWeight: 600, alignSelf: "center" }}>Estado:</span>
                 {[["todos", "Todos"], ["Aprobado", "Aprobados"], ["Reprobado", "Reprobados"]].map(([v, l]) => (
                   <button key={v} onClick={() => setEstadoFiltro(v)} style={{
                     padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
@@ -154,9 +174,10 @@ export default function ReportesEstudiante() {
                   }}>{l}</button>
                 ))}
               </div>
+
               {semestres.length > 0 && (
                 <select value={semestreFiltro} onChange={e => setSemestreFiltro(e.target.value)}
-                  style={{ marginLeft: "auto", padding: "6px 12px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 12, color: C.textSub, outline: "none", background: "white" }}>
+                  style={{ padding: "6px 12px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 12, color: C.textSub, outline: "none", background: "white" }}>
                   <option value="todos">Todos los semestres</option>
                   {semestres.map(s => <option key={s} value={String(s)}>Semestre {s}</option>)}
                 </select>
