@@ -7,6 +7,7 @@ use App\Models\Curso;
 use App\Models\Estudiante;
 use App\Models\PeriodoAcademico;
 use App\Models\HistorialAcademico;
+use App\Models\Notificacion;
 use Illuminate\Support\Facades\DB;
 
 class InscripcionController extends Controller
@@ -216,10 +217,30 @@ class InscripcionController extends Controller
 
             DB::commit();
 
+            $inscripcion->load(['curso.materia', 'curso.docente', 'curso.horarios']);
+
+            $horarioStr = $inscripcion->curso->horarios->map(fn($h) => "{$h->diaSemana} {$h->horaInicio}-{$h->horaFin}")->implode(', ');
+            $turno = $inscripcion->curso->horarios->first()?->turno ?? '—';
+            $docenteNombre = $inscripcion->curso->docente
+                ? trim("{$inscripcion->curso->docente->nombre1} {$inscripcion->curso->docente->apellidoP}")
+                : '—';
+            $mes = now()->locale('es')->monthName;
+
+            Notificacion::create([
+                'idUsuario' => $usuario->id,
+                'titulo'    => 'Inscripción Exitosa',
+                'tipo'      => 'inscripcion_exitosa',
+                'mensaje'   => "Se ha inscrito correctamente a {$inscripcion->curso->materia->nombre}, en el curso {$inscripcion->curso->codigoGrupo}. Docente: {$docenteNombre}, Horario: {$horarioStr}, Turno: {$turno}, Mes: {$mes}",
+                'fechaEnvio'=> now(),
+                'estado'    => 'Pendiente',
+                'usuarioA'  => $usuario->id,
+                'estadoA'   => 1,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => '¡Inscripción realizada exitosamente!',
-                'data'    => $inscripcion->load('curso.materia', 'curso.horarios'),
+                'data'    => $inscripcion,
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();

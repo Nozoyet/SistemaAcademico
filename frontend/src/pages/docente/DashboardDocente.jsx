@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../stores/useAuthStore";
 import { docenteService } from "../../services/docenteService";
+import { getNoLeidasCount } from "../../services/notificationService";
 
 const C = {
   bg: "#f0f9ff", color: "#0369a1", accent: "#e0f2fe",
@@ -14,6 +15,31 @@ export default function DashboardDocente() {
   const { user, logout } = useAuthStore();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [noLeidas, setNoLeidas] = useState(0);
+  const prevCountRef = useRef(0);
+  const [newNotifCount, setNewNotifCount] = useState(0);
+
+  const fetchNoLeidas = useCallback(async () => {
+    try {
+      const res = await getNoLeidasCount();
+      const count = res.data.data.count;
+      const prev = prevCountRef.current;
+
+      if (count > prev) {
+        setNewNotifCount(count - prev);
+        setTimeout(() => setNewNotifCount(0), 4000);
+      }
+
+      prevCountRef.current = count;
+      setNoLeidas(count);
+    } catch (_) {}
+  }, []);
+
+  useEffect(() => {
+    fetchNoLeidas();
+    const interval = setInterval(fetchNoLeidas, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNoLeidas]);
 
   useEffect(() => {
     docenteService.obtenerCursos()
@@ -36,6 +62,13 @@ export default function DashboardDocente() {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
+      <style>{`
+        @keyframes notifPop {
+          0% { transform: scale(0.3); opacity: 0; }
+          50% { transform: scale(1.2); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 2rem", background: "white", borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
@@ -45,9 +78,75 @@ export default function DashboardDocente() {
           </svg>
           <span style={{ fontWeight: 700, fontSize: "1rem", color: C.color }}>Sistema Académico</span>
         </div>
-        <button onClick={handleLogout} style={{ display: "flex", alignItems: "center", gap: 7, padding: "0.45rem 1rem", border: `1.5px solid ${C.border}`, borderRadius: 8, background: "white", color: C.textSub, fontSize: "0.84rem", fontWeight: 500, cursor: "pointer" }}>
-          Cerrar sesión
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={() => {
+              setNewNotifCount(0);
+              navigate("/docente/notificaciones");
+            }}
+            style={{
+              position: "relative",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: "6px",
+              borderRadius: 8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: C.textSub,
+            }}
+            title="Notificaciones"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            {newNotifCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  bottom: -4,
+                  right: -10,
+                  fontSize: "0.65rem",
+                  fontWeight: 700,
+                  color: "#16a34a",
+                  background: "#dcfce7",
+                  borderRadius: 8,
+                  padding: "0 5px",
+                  lineHeight: "16px",
+                  animation: "notifPop 0.4s ease-out",
+                  pointerEvents: "none",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                +{newNotifCount}
+              </span>
+            )}
+            {noLeidas > 0 && (
+              <span
+                className="badge rounded-pill bg-danger"
+                style={{
+                  position: "absolute",
+                  top: -2,
+                  right: -4,
+                  fontSize: "0.6rem",
+                  minWidth: 16,
+                  height: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "0 4px",
+                }}
+              >
+                {noLeidas}
+              </span>
+            )}
+          </button>
+          <button onClick={handleLogout} style={{ display: "flex", alignItems: "center", gap: 7, padding: "0.45rem 1rem", border: `1.5px solid ${C.border}`, borderRadius: 8, background: "white", color: C.textSub, fontSize: "0.84rem", fontWeight: 500, cursor: "pointer" }}>
+            Cerrar sesión
+          </button>
+        </div>
       </header>
 
       <main style={{ maxWidth: 680, margin: "0 auto", padding: "3rem 1.5rem 2rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>

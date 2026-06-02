@@ -13,6 +13,7 @@ use App\Http\Controllers\InscripcionController;
 use App\Http\Controllers\DocenteController;
 use App\Http\Controllers\EstudianteReporteController;
 use App\Http\Controllers\ReporteDocenteController;
+use App\Http\Controllers\NotificacionController;
 
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
@@ -57,6 +58,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/cursos/{id}',  [CursoController::class, 'destroy']);
     Route::put('/cursos/{id}', [CursoController::class, 'update']);
   
+
+    // Notificaciones
+    Route::get('/notificaciones',                [NotificacionController::class, 'index']);
+    Route::get('/notificaciones/no-leidas',      [NotificacionController::class, 'noLeidas']);
+    Route::patch('/notificaciones/{id}/leer',    [NotificacionController::class, 'marcarLeida']);
+    Route::patch('/notificaciones/leer-todas',   [NotificacionController::class, 'marcarTodasLeidas']);
 
     // Carreras - pensum activo con materias
     

@@ -30,6 +30,7 @@ import MisCursos from './pages/docente/MisCursos.jsx';
 import CursoEstudiantes from './pages/docente/CursoEstudiantes.jsx';
 import ReportesDocente from './pages/docente/ReportesDocente.jsx';
 import ReportesEstudiante from './pages/estudiante/ReportesEstudiante.jsx';
+import Notificaciones from './pages/Notificaciones.jsx';
 
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/login" replace /> },
@@ -120,6 +121,32 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute roles={['Estudiante']}>
         <Bienvenida />
+      </ProtectedRoute>
+    ),
+  },
+
+  // Notificaciones (accesible para todos los roles autenticados)
+  {
+    path: '/admin/notificaciones',
+    element: (
+      <ProtectedRoute roles={['Administrador']}>
+        <Notificaciones />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/docente/notificaciones',
+    element: (
+      <ProtectedRoute roles={['Docente']}>
+        <Notificaciones />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/estudiante/notificaciones',
+    element: (
+      <ProtectedRoute roles={['Estudiante']}>
+        <Notificaciones />
       </ProtectedRoute>
     ),
   },

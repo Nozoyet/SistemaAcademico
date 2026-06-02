@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../stores/useAuthStore";
+import { getNoLeidasCount } from "../services/notificationService";
 
 const ROL_CONFIG = {
   Administrador: {
@@ -98,6 +99,33 @@ export default function Bienvenida() {
   // Estado para alternar menús desplegables (almacena el índice del menú abierto, o null)
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
 
+  // Notificaciones
+  const [noLeidas, setNoLeidas] = useState(0);
+  const prevCountRef = useRef(0);
+  const [newNotifCount, setNewNotifCount] = useState(0);
+
+  const fetchNoLeidas = useCallback(async () => {
+    try {
+      const res = await getNoLeidasCount();
+      const count = res.data.data.count;
+      const prev = prevCountRef.current;
+
+      if (count > prev) {
+        setNewNotifCount(count - prev);
+        setTimeout(() => setNewNotifCount(0), 4000);
+      }
+
+      prevCountRef.current = count;
+      setNoLeidas(count);
+    } catch (_) {}
+  }, []);
+
+  useEffect(() => {
+    fetchNoLeidas();
+    const interval = setInterval(fetchNoLeidas, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNoLeidas]);
+
   const config = ROL_CONFIG[user?.rol] || ROL_CONFIG.Estudiante;
   const hora = new Date().getHours();
   const saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
@@ -109,6 +137,13 @@ export default function Bienvenida() {
 
   return (
     <div style={{ ...styles.root, background: config.bg }}>
+      <style>{`
+        @keyframes notifPop {
+          0% { transform: scale(0.3); opacity: 0; }
+          50% { transform: scale(1.2); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
       {/* Header */}
       <header style={styles.header}>
         <div style={styles.headerBrand}>
@@ -119,14 +154,85 @@ export default function Bienvenida() {
           </svg>
           <span style={{ ...styles.headerTitle, color: config.color }}>Sistema Académico</span>
         </div>
-        <button onClick={handleLogout} style={styles.logoutBtn}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          Cerrar sesión
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={() => {
+              setNewNotifCount(0);
+              const rutas = {
+                Administrador: "/admin/notificaciones",
+                Docente: "/docente/notificaciones",
+                Estudiante: "/estudiante/notificaciones",
+              };
+              navigate(rutas[user?.rol] || "/notificaciones");
+            }}
+            style={{
+              position: "relative",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: "6px",
+              borderRadius: 8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#475569",
+            }}
+            title="Notificaciones"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            {newNotifCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  bottom: -4,
+                  right: -10,
+                  fontSize: "0.65rem",
+                  fontWeight: 700,
+                  color: "#16a34a",
+                  background: "#dcfce7",
+                  borderRadius: 8,
+                  padding: "0 5px",
+                  lineHeight: "16px",
+                  animation: "notifPop 0.4s ease-out",
+                  pointerEvents: "none",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                +{newNotifCount}
+              </span>
+            )}
+            {noLeidas > 0 && (
+              <span
+                className="badge rounded-pill bg-danger"
+                style={{
+                  position: "absolute",
+                  top: -2,
+                  right: -4,
+                  fontSize: "0.6rem",
+                  minWidth: 16,
+                  height: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "0 4px",
+                }}
+              >
+                {noLeidas}
+              </span>
+            )}
+          </button>
+          <button onClick={handleLogout} style={styles.logoutBtn}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Cerrar sesión
+          </button>
+        </div>
       </header>
 
       {/* Main content */}

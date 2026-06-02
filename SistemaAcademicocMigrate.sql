@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 01-06-2026 a las 06:04:05
+-- Tiempo de generación: 02-06-2026 a las 04:55:25
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -152,7 +152,17 @@ CREATE TABLE `estudiante` (
 --
 
 INSERT INTO `estudiante` (`idUsuario`, `matricula`, `telefono`, `fechaNac`, `fechaInscripcion`, `idCarrera`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
-(3, 'MAT-2025001', '71234567', '2003-05-15', '2026-05-25 18:45:40', 1, '1', '2026-05-25 18:45:40', 1);
+(3, 'MAT-2025001', '71234567', '2003-05-15', '2026-05-25 18:45:40', 1, '1', '2026-05-25 18:45:40', 1),
+(14, 'MAT-2025002', '71567890', '2004-03-12', '2026-06-01 22:51:45', 1, 'adminp', '2026-06-01 22:51:45', 1),
+(15, 'MAT-2025003', '72345678', '2005-01-25', '2026-06-01 22:51:45', 1, 'adminp', '2026-06-01 22:51:45', 1),
+(16, 'MAT-2025004', '73456789', '2004-11-08', '2026-06-01 22:51:45', 1, 'adminp', '2026-06-01 22:51:45', 1),
+(17, 'MAT-2025005', '74567890', '2003-09-15', '2026-06-01 22:51:45', 1, 'adminp', '2026-06-01 22:51:45', 1),
+(18, 'MAT-2025006', '75678901', '2004-07-20', '2026-06-01 22:51:45', 1, 'adminp', '2026-06-01 22:51:45', 1),
+(19, 'MAT-2025007', '76789012', '2005-02-10', '2026-06-01 22:51:45', 1, 'adminp', '2026-06-01 22:51:45', 1),
+(20, 'MAT-2025008', '77890123', '2004-05-30', '2026-06-01 22:51:45', 1, 'adminp', '2026-06-01 22:51:45', 1),
+(21, 'MAT-2025009', '78901234', '2003-12-18', '2026-06-01 22:51:45', 1, 'adminp', '2026-06-01 22:51:45', 1),
+(22, 'MAT-2025010', '79012345', '2004-08-05', '2026-06-01 22:51:45', 1, 'adminp', '2026-06-01 22:51:45', 1),
+(23, 'MAT-2025011', '70123456', '2005-04-22', '2026-06-01 22:51:45', 1, 'adminp', '2026-06-01 22:51:45', 1);
 
 -- --------------------------------------------------------
 
@@ -188,6 +198,24 @@ CREATE TABLE `historialacademico` (
   `fechaHoraA` datetime DEFAULT current_timestamp(),
   `estadoA` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `historialacademico`
+--
+
+INSERT INTO `historialacademico` (`id`, `idEstudiante`, `idMateria`, `idPeriodoAcademico`, `idInscripcion`, `notaFinal`, `estado`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
+(1, 18, 1, 1, NULL, 8.5, 'Aprobado', 'adminp', '2026-06-01 22:51:45', 1),
+(2, 18, 2, 1, NULL, 9, 'Aprobado', 'adminp', '2026-06-01 22:51:45', 1),
+(3, 18, 3, 1, NULL, 8, 'Aprobado', 'adminp', '2026-06-01 22:51:45', 1),
+(4, 18, 4, 1, NULL, 7.5, 'Aprobado', 'adminp', '2026-06-01 22:51:45', 1),
+(5, 18, 5, 2, NULL, 8.2, 'Aprobado', 'adminp', '2026-06-01 22:51:45', 1),
+(6, 18, 6, 2, NULL, 9.5, 'Aprobado', 'adminp', '2026-06-01 22:51:45', 1),
+(7, 18, 7, 2, NULL, 7.8, 'Aprobado', 'adminp', '2026-06-01 22:51:45', 1),
+(8, 18, 8, 2, NULL, 8.7, 'Aprobado', 'adminp', '2026-06-01 22:51:45', 1),
+(9, 18, 9, 3, NULL, 8, 'Aprobado', 'adminp', '2026-06-01 22:51:45', 1),
+(10, 18, 10, 3, NULL, 7.2, 'Aprobado', 'adminp', '2026-06-01 22:51:45', 1),
+(11, 18, 11, 3, NULL, NULL, 'Reprobado', 'adminp', '2026-06-01 22:51:45', 1),
+(12, 18, 12, 3, NULL, 4.5, 'Reprobado', 'adminp', '2026-06-01 22:51:45', 1);
 
 -- --------------------------------------------------------
 
@@ -446,7 +474,10 @@ CREATE TABLE `periodoacademico` (
 --
 
 INSERT INTO `periodoacademico` (`id`, `codigo`, `fechaInicio`, `fechaFin`, `idCarrera`, `estado`, `usuarioA`, `fechaHoraA`, `estadoA`) VALUES
-(1, '02', '2026-06-01', '2026-07-05', 1, 1, '1', '2026-05-31 19:19:48', 1);
+(1, '02', '2026-06-01', '2026-07-05', 1, 1, '1', '2026-05-31 19:19:48', 1),
+(2, '2025-1S', '2025-03-01', '2025-07-31', 1, 1, 'adminp', '2026-06-01 22:51:45', 1),
+(3, '2025-2S', '2025-08-15', '2025-12-20', 1, 1, 'adminp', '2026-06-01 22:51:45', 1),
+(4, '2026-1S', '2026-03-01', '2026-07-31', 1, 1, 'adminp', '2026-06-01 22:51:45', 1);
 
 -- --------------------------------------------------------
 
@@ -472,7 +503,8 @@ CREATE TABLE `personal_access_tokens` (
 --
 
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
-(7, 'App\\Models\\Usuario', 1, 'auth_token', '094c02874e3d20cd1c0d8f87c5eaa4c3e3d7fedf605c5b2c76ad7c89ecfc8e44', '[\"*\"]', '2026-06-01 03:25:13', NULL, '2026-06-01 01:19:27', '2026-06-01 03:25:13');
+(11, 'App\\Models\\Usuario', 1, 'auth_token', '0ce9bcdbeabb7b4f12ff577f40780c8d72fef0b17ed20d3d474aadddf6218fff', '[\"*\"]', '2026-06-02 04:57:48', NULL, '2026-06-02 04:57:30', '2026-06-02 04:57:48'),
+(12, 'App\\Models\\Usuario', 17, 'auth_token', '21fbb4072f41c092750224fd6e87101c69b8803fa0dd00666dfbad97c83ba8dd', '[\"*\"]', '2026-06-02 06:40:23', NULL, '2026-06-02 06:39:36', '2026-06-02 06:40:23');
 
 -- --------------------------------------------------------
 
@@ -546,16 +578,16 @@ INSERT INTO `usuario` (`id`, `email`, `nombreUsuario`, `contrasena`, `rol`, `est
 (11, 'jorge.castro@universidad.edu', 'jlcastro', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Jorge', 'Luis', 'Castro', 'Molina'),
 (12, 'valentina.ortega@universidad.edu', 'vortega', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Valentina', NULL, 'Ortega', 'Silva'),
 (13, 'miguel.navarro@universidad.edu', 'mnavarro', '123', 'Docente', 1, 'adminp', '2026-05-28 21:22:10', 1, 'Miguel', 'Ángel', 'Navarro', 'Rojas'),
-(16, 'juan.mendoza@universidad.edu', 'jmendoza', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Juan', 'Carlos', 'Mendoza', 'Rojas'),
-(17, 'maria.vargas@universidad.edu', 'mvargas', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'María', 'Laura', 'Vargas', 'López'),
-(18, 'luis.gomez@universidad.edu', 'lagomez', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Luis', 'Alejandro', 'Gómez', 'Torres'),
-(19, 'ana.ramirez@universidad.edu', 'asramirez', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Ana', 'Sofía', 'Ramírez', 'Castillo'),
-(20, 'diego.morales@universidad.edu', 'dmorales', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Diego', 'Fernando', 'Morales', 'Herrera'),
-(21, 'valeria.ortega@universidad.edu', 'vortex', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Valeria', NULL, 'Ortega', 'Silva'),
-(22, 'andres.navarro@universidad.edu', 'anavarro', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Andrés', 'Felipe', 'Navarro', 'Pérez'),
-(23, 'camila.rojas@universidad.edu', 'crojas', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Camila', 'Andrea', 'Rojas', 'Molina'),
-(24, 'mateo.fernandez@universidad.edu', 'mfernandez', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Mateo', NULL, 'Fernández', 'Vargas'),
-(25, 'isabella.castro@universidad.edu', 'icastro', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Isabella', 'Valentina', 'Castro', 'Suárez');
+(14, 'juan.mendoza@universidad.edu', 'jmendoza', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Juan', 'Carlos', 'Mendoza', 'Rojas'),
+(15, 'maria.vargas@universidad.edu', 'mvargas', '$2y$10$didLsoJxR63bf8Al914oL.KSRGE760J7fh79GwicGxHr7fXH82fqi', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'María', 'Laura', 'Vargas', 'López'),
+(16, 'luis.gomez@universidad.edu', 'lagomez', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Luis', 'Alejandro', 'Gómez', 'Torres'),
+(17, 'ana.ramirez@universidad.edu', 'asramirez', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Ana', 'Sofía', 'Ramírez', 'Castillo'),
+(18, 'diego.morales@universidad.edu', 'dmorales', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Diego', 'Fernando', 'Morales', 'Herrera'),
+(19, 'valeria.ortega@universidad.edu', 'vortex', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Valeria', NULL, 'Ortega', 'Silva'),
+(20, 'andres.navarro@universidad.edu', 'anavarro', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Andrés', 'Felipe', 'Navarro', 'Pérez'),
+(21, 'camila.rojas@universidad.edu', 'crojas', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Camila', 'Andrea', 'Rojas', 'Molina'),
+(22, 'mateo.fernandez@universidad.edu', 'mfernandez', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Mateo', NULL, 'Fernández', 'Vargas'),
+(23, 'isabella.castro@universidad.edu', 'icastro', '123', 'Estudiante', 1, 'adminp', '2026-05-31 19:31:06', 1, 'Isabella', 'Valentina', 'Castro', 'Suárez');
 
 --
 -- Índices para tablas volcadas
@@ -761,7 +793,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT de la tabla `historialacademico`
 --
 ALTER TABLE `historialacademico`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `horario`
@@ -815,13 +847,13 @@ ALTER TABLE `pensum`
 -- AUTO_INCREMENT de la tabla `periodoacademico`
 --
 ALTER TABLE `periodoacademico`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `users`

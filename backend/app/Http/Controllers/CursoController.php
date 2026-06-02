@@ -6,6 +6,7 @@ use App\Models\Curso;
 use App\Models\Horario;
 use Illuminate\Support\Facades\DB;
 use App\Models\PeriodoAcademico;
+use App\Models\Notificacion;
 
 class CursoController extends Controller
 {
@@ -84,10 +85,28 @@ class CursoController extends Controller
                 ]);
             }
             DB::commit();
+
+            $curso->load(['materia', 'docente', 'horarios', 'periodoAcademico.carrera']);
+
+            $horarioStr = $curso->horarios->map(fn($h) => "{$h->diaSemana} {$h->horaInicio}-{$h->horaFin}")->implode(', ');
+            $turno = $curso->horarios->first()?->turno ?? '—';
+            $mes = now()->locale('es')->monthName;
+
+            Notificacion::create([
+                'idUsuario' => $curso->idDocente,
+                'titulo'    => 'Curso Asignado',
+                'tipo'      => 'curso_asignado',
+                'mensaje'   => "Se le ha asignado un nuevo curso. Materia: {$curso->materia->nombre}, Carrera: {$curso->periodoAcademico->carrera->nombre}, Curso: {$curso->codigoGrupo}, Turno: {$turno}, Horario: {$horarioStr}, Mes: {$mes}",
+                'fechaEnvio'=> now(),
+                'estado'    => 'Pendiente',
+                'usuarioA'  => $request->user()->id,
+                'estadoA'   => 1,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Curso creado correctamente',
-                'data'    => $curso->load(['materia', 'docente', 'horarios']),
+                'data'    => $curso,
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();

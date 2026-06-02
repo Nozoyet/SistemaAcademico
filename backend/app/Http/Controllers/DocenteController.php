@@ -7,6 +7,8 @@ use App\Models\Inscripcion;
 use App\Models\HistorialAcademico;
 use App\Models\Estudiante;
 use App\Models\PeriodoAcademico;
+use App\Models\Notificacion;
+use App\Models\Usuario;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -109,7 +111,7 @@ class DocenteController extends Controller
             'calificaciones.*.notaFinal'     => 'required|numeric|min:0|max:100',
         ]);
 
-        $curso = Curso::where('id', $cursoId)->where('estadoA', 1)->first();
+        $curso = Curso::with(['materia', 'docente'])->where('id', $cursoId)->where('estadoA', 1)->first();
         if (!$curso) {
             return response()->json(['success' => false, 'message' => 'Curso no encontrado'], 404);
         }
@@ -146,6 +148,22 @@ class DocenteController extends Controller
                         'estadoA'            => 1,
                     ]
                 );
+
+                $estudiante = Usuario::find($inscripcion->idEstudiante);
+                $docenteNombre = $curso->docente
+                    ? trim("{$curso->docente->nombre1} {$curso->docente->apellidoP}")
+                    : '—';
+
+                Notificacion::create([
+                    'idUsuario' => $inscripcion->idEstudiante,
+                    'titulo'    => 'Calificación Asignada',
+                    'tipo'      => 'calificacion_asignada',
+                    'mensaje'   => "Su nota final ha sido asignada. Nota: {$nota}, Materia: {$curso->materia->nombre}, Docente: {$docenteNombre}",
+                    'fechaEnvio'=> now(),
+                    'estado'    => 'Pendiente',
+                    'usuarioA'  => $request->user()->id,
+                    'estadoA'   => 1,
+                ]);
             }
 
             DB::commit();
