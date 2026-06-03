@@ -3,21 +3,42 @@ import { useNavigate } from "react-router-dom";
 import { getNotificaciones, marcarLeida, marcarTodasLeidas } from "../services/notificationService";
 import useAuthStore from "../stores/useAuthStore";
 
+const BookIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+);
+
+const CheckCircleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+    <polyline points="22 4 12 14.01 9 11.01" />
+  </svg>
+);
+
+const EditIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+);
+
 const TIPO_CONFIG = {
   curso_asignado: {
-    icon: "📚",
+    icon: <BookIcon />,
     bg: "#e0f2fe",
     color: "#0369a1",
     redirect: (user) => "/docente/cursos",
   },
   inscripcion_exitosa: {
-    icon: "✅",
+    icon: <CheckCircleIcon />,
     bg: "#d1fae5",
     color: "#065f46",
     redirect: (user) => "/estudiante/inscripciones",
   },
   calificacion_asignada: {
-    icon: "📝",
+    icon: <EditIcon />,
     bg: "#fef3c7",
     color: "#92400e",
     redirect: (user) => "/estudiante/inscripciones",
@@ -133,13 +154,16 @@ export default function Notificaciones() {
       <main style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1.5rem" }}>
         {error && (
           <div className="alert alert-danger d-flex align-items-center gap-2" role="alert">
-            <span>⚠️</span> {error}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg> {error}
           </div>
         )}
 
         {!error && notificaciones.length === 0 && (
           <div className="text-center py-5">
-            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔔</div>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" style={{ marginBottom: "1rem" }}>
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
             <h5 style={{ color: "#64748b", fontWeight: 500 }}>No tienes notificaciones</h5>
             <p style={{ color: "#94a3b8", fontSize: "0.9rem" }}>Las notificaciones aparecerán aquí cuando tengas actividad nueva.</p>
           </div>
@@ -147,7 +171,10 @@ export default function Notificaciones() {
 
         <div className="list-group">
           {notificaciones.map((notif) => {
-            const tipoCfg = TIPO_CONFIG[notif.tipo] || { icon: "🔔", bg: "#f1f5f9", color: "#475569" };
+            const tipoCfg = TIPO_CONFIG[notif.tipo] || {
+              icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>,
+              bg: "#f1f5f9", color: "#475569",
+            };
 
             return (
               <button

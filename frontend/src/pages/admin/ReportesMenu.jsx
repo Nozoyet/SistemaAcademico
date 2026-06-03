@@ -7,24 +7,46 @@ const ADMIN_CONFIG = {
   accent: "#ede9fe",
 };
 
+const BookIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+);
+
+const StudentIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+  </svg>
+);
+
+const TeacherIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+    <line x1="8" y1="21" x2="16" y2="21" />
+    <line x1="12" y1="17" x2="12" y2="21" />
+  </svg>
+);
+
 const REPORT_OPTIONS = [
   {
     label: "Reportes por Carrera",
     desc: "Consulta materias, créditos y semestres de cada carrera.",
     href: "/admin/reportes",
-    icon: "📚",
+    icon: <BookIcon />,
   },
   {
     label: "Reportes de Estudiantes",
     desc: "Visualiza estudiantes inscritos, notas y avance por carrera.",
     href: "/admin/reportes/estudiantes",
-    icon: "👨‍🎓",
+    icon: <StudentIcon />,
   },
   {
     label: "Reportes de Docentes",
     desc: "Consulta docentes, cursos asignados y carga académica.",
     href: "/admin/reportes/docentes",
-    icon: "👨‍🏫",
+    icon: <TeacherIcon />,
   },
 ];
 
@@ -40,6 +62,19 @@ export default function ReportesMenu() {
   return (
     <div style={{ ...styles.root, background: ADMIN_CONFIG.bg }}>
       <header style={styles.header}>
+        <div style={styles.headerActions}>
+          <button
+            onClick={() => navigate("/admin/bienvenida")}
+            style={styles.backBtn}
+            onMouseOver={(e) => { e.currentTarget.style.background = "#5b21b6" }}
+            onMouseOut={(e) => { e.currentTarget.style.background = "#7c3aed" }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Volver
+          </button>
+        </div>
         <div style={styles.headerBrand}>
           <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
             <rect width="48" height="48" rx="10" fill={ADMIN_CONFIG.color} fillOpacity=".12" />
@@ -48,28 +83,16 @@ export default function ReportesMenu() {
           </svg>
           <span style={{ ...styles.headerTitle, color: ADMIN_CONFIG.color }}>Sistema Académico</span>
         </div>
-        <div style={styles.headerActions}>
-          <button onClick={() => navigate("/admin/bienvenida")} style={styles.backBtn}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Volver
-          </button>
-          <button onClick={handleLogout} style={styles.logoutBtn}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            Cerrar sesión
-          </button>
-        </div>
       </header>
 
       <main style={styles.main}>
         <div style={{ ...styles.heroCard, borderTop: `4px solid ${ADMIN_CONFIG.color}` }}>
           <div style={{ ...styles.roleChip, background: ADMIN_CONFIG.accent, color: ADMIN_CONFIG.color }}>
-            <span style={{ display: "flex" }}>📊</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ADMIN_CONFIG.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
             Centro de Reportes
           </div>
 
@@ -86,8 +109,8 @@ export default function ReportesMenu() {
                 key={opt.href}
                 onClick={() => navigate(opt.href)}
                 style={styles.optionCard}
-                onMouseOver={(e) => (e.currentTarget.style.borderColor = ADMIN_CONFIG.color)}
-                onMouseOut={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = ADMIN_CONFIG.color; e.currentTarget.style.background = "#ede9fe" }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.background = "#f8fafc" }}
               >
                 <span style={styles.optionIcon}>{opt.icon}</span>
                 <div style={styles.optionContent}>
@@ -147,13 +170,14 @@ const styles = {
     alignItems: "center",
     gap: 7,
     padding: "0.45rem 1rem",
-    border: "1.5px solid #e2e8f0",
+    border: "none",
     borderRadius: 8,
-    background: "#f8fafc",
-    color: "#475569",
+    background: "#7c3aed",
+    color: "white",
     fontSize: "0.84rem",
     fontWeight: 500,
     cursor: "pointer",
+    transition: "background .15s",
   },
   logoutBtn: {
     display: "flex",
@@ -224,7 +248,7 @@ const styles = {
     transition: "border-color .15s, background .15s",
     width: "100%",
   },
-  optionIcon: { fontSize: "1.5rem", flexShrink: 0 },
+  optionIcon: { width: 20, height: 20, flexShrink: 0, color: ADMIN_CONFIG.color, display: "flex", alignItems: "center", justifyContent: "center" },
   optionContent: {
     display: "flex",
     flexDirection: "column",

@@ -3,10 +3,39 @@ import { useNavigate } from "react-router-dom";
 import useAuthStore from "../stores/useAuthStore";
 import api from "../services/api";
 
+const ADMIN_CONFIG = {
+  color: "#7c3aed",
+  bg: "#faf5ff",
+  accent: "#ede9fe",
+};
+
+const ShieldIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4z" />
+    <path d="M20 21v-1a6 6 0 0 0-6-6H10a6 6 0 0 0-6 6v1" />
+    <path d="M16 11h6M19 8v6" />
+  </svg>
+);
+
+const TeacherIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+    <line x1="8" y1="21" x2="16" y2="21" />
+    <line x1="12" y1="17" x2="12" y2="21" />
+  </svg>
+);
+
+const GraduationIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+  </svg>
+);
+
 const ROL_CONFIG = {
-  Administrador: { color: "#7C3AED", bg: "#EDE9FE", icon: "🛡️" },
-  Docente:       { color: "#0369A1", bg: "#E0F2FE", icon: "👨‍🏫" },
-  Estudiante:    { color: "#047857", bg: "#D1FAE5", icon: "🎓" },
+  Administrador: { color: "#7C3AED", bg: "#EDE9FE", icon: <ShieldIcon /> },
+  Docente:       { color: "#0369A1", bg: "#E0F2FE", icon: <TeacherIcon /> },
+  Estudiante:    { color: "#047857", bg: "#D1FAE5", icon: <GraduationIcon /> },
 };
 
 export default function Perfil() {
@@ -72,17 +101,31 @@ export default function Perfil() {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#F8FAFC", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
-      <div style={{ maxWidth: 620, margin: "0 auto", padding: "32px 24px" }}>
+        <header style={styles.header}>
+          <div style={styles.headerActions}>
+            <button
+              onClick={() => navigate(`/${rol === "Administrador" ? "admin" : rol.toLowerCase()}/bienvenida`)}
+              style={styles.backBtn}
+              onMouseOver={(e) => { e.currentTarget.style.background = '#5b21b6' }}
+              onMouseOut={(e) => { e.currentTarget.style.background = '#7c3aed' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+              Volver
+            </button>
+          </div>
+          <div style={styles.headerBrand}>
+            <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+              <rect width="48" height="48" rx="10" fill={ADMIN_CONFIG.color} fillOpacity=".12" />
+              <path d="M12 34L24 14L36 34H12Z" stroke={ADMIN_CONFIG.color} strokeWidth="2.2" strokeLinejoin="round" fill="none" />
+              <circle cx="24" cy="24" r="3.5" fill={ADMIN_CONFIG.color} fillOpacity=".7" />
+            </svg>
+            <span style={{ ...styles.headerTitle, color: ADMIN_CONFIG.color }}>Sistema Académico</span>
+          </div>
+        </header>
 
-        {/* Botón volver */}
-        <button onClick={() => navigate(-1)} style={{
-          background: "none", border: "none", cursor: "pointer",
-          color: "#6366F1", fontSize: 13, fontWeight: 600, marginBottom: 24,
-          display: "flex", alignItems: "center", gap: 6, padding: 0,
-        }}>
-          ← Volver
-        </button>
-
+        <main style={{ maxWidth: 620, margin: "0 auto", padding: "32px 24px" }}>
         {/* Card principal */}
         <div style={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, overflow: "hidden", marginBottom: 16 }}>
 
@@ -134,7 +177,7 @@ export default function Perfil() {
               ))}
             </div>
             <p style={{ margin: "12px 0 0", fontSize: 12, color: "#94A3B8" }}>
-              ℹ️ Para modificar tus datos personales, contacta al administrador.
+              Para modificar tus datos personales, contacta al administrador.
             </p>
           </div>
 
@@ -144,12 +187,12 @@ export default function Perfil() {
 
             {error && (
               <div style={{ backgroundColor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 14 }}>
-                ✕ {error}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg> {error}
               </div>
             )}
             {exito && (
               <div style={{ backgroundColor: "#F0FDF4", color: "#16A34A", border: "1px solid #BBF7D0", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 14 }}>
-                ✓ {exito}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}><polyline points="20 6 9 17 4 12" /></svg> {exito}
               </div>
             )}
 
@@ -208,8 +251,15 @@ export default function Perfil() {
         >
           Cerrar sesión
         </button>
-
-      </div>
+      </main>
     </div>
   );
 }
+
+const styles = {
+  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 2rem", background: "white", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 10 },
+  headerActions: { display: "flex", alignItems: "center", gap: 10 },
+  backBtn: { display: "flex", alignItems: "center", gap: 7, padding: "0.45rem 1rem", border: "none", borderRadius: 8, background: "#7c3aed", color: "white", fontSize: "0.84rem", fontWeight: 500, cursor: "pointer" },
+  headerBrand: { display: "flex", alignItems: "center", gap: 10 },
+  headerTitle: { fontWeight: 700, fontSize: "1rem", letterSpacing: "-0.01em" },
+};

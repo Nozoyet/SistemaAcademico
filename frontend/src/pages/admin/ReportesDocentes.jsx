@@ -154,6 +154,20 @@ export default function ReportesDocentes() {
   return (
     <div style={{ ...styles.root, background: ADMIN_CONFIG.bg }}>
       <header style={styles.header}>
+        <div style={styles.headerActions}>
+          <button
+            onClick={() => navigate('/admin/bienvenida')}
+            style={styles.backBtn}
+            onMouseOver={(e) => { e.currentTarget.style.background = '#5b21b6' }}
+            onMouseOut={(e) => { e.currentTarget.style.background = '#7c3aed' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Volver
+          </button>
+
+        </div>
         <div style={styles.headerBrand}>
           <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
             <rect width="48" height="48" rx="10" fill={ADMIN_CONFIG.color} fillOpacity=".12" />
@@ -162,28 +176,16 @@ export default function ReportesDocentes() {
           </svg>
           <span style={{ ...styles.headerTitle, color: ADMIN_CONFIG.color }}>Sistema Académico</span>
         </div>
-        <div style={styles.headerActions}>
-          <button onClick={() => navigate('/admin/reportes/menu')} style={styles.backBtn}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Volver
-          </button>
-          <button onClick={handleLogout} style={styles.logoutBtn}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            Cerrar sesión
-          </button>
-        </div>
-      </header>
 
+      </header>
       <main style={styles.main}>
         <div style={{ ...styles.heroCard, borderTop: `4px solid ${ADMIN_CONFIG.color}` }}>
           <div style={{ ...styles.roleChip, background: ADMIN_CONFIG.accent, color: ADMIN_CONFIG.color }}>
-            <span style={{ display: 'flex' }}>👨‍🏫</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ADMIN_CONFIG.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+            </svg>
             Reporte de Docentes
           </div>
 
@@ -257,6 +259,8 @@ export default function ReportesDocentes() {
                     opacity: !carreraId || !periodoId || loading ? 0.5 : 1,
                     cursor: !carreraId || !periodoId || loading ? 'not-allowed' : 'pointer',
                   }}
+                  onMouseOver={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#5b21b6' }}
+                  onMouseOut={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#7c3aed' }}
                 >
                   {loading ? 'Buscando...' : 'Buscar'}
                 </button>
@@ -322,7 +326,12 @@ export default function ReportesDocentes() {
             </div>
 
             <div style={styles.exportSection}>
-              <button onClick={() => abrirModal('pdf')} style={{ ...styles.exportBtn, background: '#dc2626', borderColor: '#dc2626' }}>
+              <button
+                onClick={() => abrirModal('pdf')}
+                style={{ ...styles.exportBtn, background: '#dc2626', borderColor: '#dc2626' }}
+                onMouseOver={(e) => { e.currentTarget.style.background = '#b91c1c' }}
+                onMouseOut={(e) => { e.currentTarget.style.background = '#dc2626' }}
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
@@ -330,7 +339,12 @@ export default function ReportesDocentes() {
                 </svg>
                 Exportar PDF
               </button>
-              <button onClick={() => abrirModal('excel')} style={{ ...styles.exportBtn, background: '#16a34a', borderColor: '#16a34a' }}>
+              <button
+                onClick={() => abrirModal('excel')}
+                style={{ ...styles.exportBtn, background: '#16a34a', borderColor: '#16a34a' }}
+                onMouseOver={(e) => { e.currentTarget.style.background = '#15803d' }}
+                onMouseOut={(e) => { e.currentTarget.style.background = '#16a34a' }}
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
@@ -439,7 +453,7 @@ const styles = {
   headerBrand: { display: 'flex', alignItems: 'center', gap: 10 },
   headerTitle: { fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.01em' },
   headerActions: { display: 'flex', alignItems: 'center', gap: 10 },
-  backBtn: { display: 'flex', alignItems: 'center', gap: 7, padding: '0.45rem 1rem', border: '1.5px solid #e2e8f0', borderRadius: 8, background: '#f8fafc', color: '#475569', fontSize: '0.84rem', fontWeight: 500, cursor: 'pointer' },
+  backBtn: { display: 'flex', alignItems: 'center', gap: 7, padding: '0.45rem 1rem', border: 'none', borderRadius: 8, background: '#7c3aed', color: 'white', fontSize: '0.84rem', fontWeight: 500, cursor: 'pointer', transition: 'background .15s' },
   logoutBtn: { display: 'flex', alignItems: 'center', gap: 7, padding: '0.45rem 1rem', border: '1.5px solid #e2e8f0', borderRadius: 8, background: 'white', color: '#475569', fontSize: '0.84rem', fontWeight: 500, cursor: 'pointer' },
   main: { maxWidth: 1000, margin: '0 auto', padding: '3rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' },
   heroCard: { background: 'white', borderRadius: 16, padding: '2rem', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' },

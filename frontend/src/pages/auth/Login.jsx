@@ -46,7 +46,7 @@ export default function Login() {
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          "Error al conectar con el servidor."
+        "Error al conectar con el servidor."
       );
     } finally {
       setLoading(false);
@@ -232,9 +232,9 @@ export default function Login() {
               style={
                 loading
                   ? {
-                      ...styles.btn,
-                      ...styles.btnDisabled,
-                    }
+                    ...styles.btn,
+                    ...styles.btnDisabled,
+                  }
                   : styles.btn
               }
               onMouseEnter={(e) => {
@@ -250,7 +250,7 @@ export default function Login() {
               ) : (
                 "Iniciar sesión"
               )}
-              
+
             </button>
           </form>
         </div>

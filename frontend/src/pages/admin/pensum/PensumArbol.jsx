@@ -2,6 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../services/api";
 
+const ADMIN_CONFIG = {
+  color: "#7c3aed",
+  bg: "#faf5ff",
+  accent: "#ede9fe",
+};
+
 const SEM_COLORS = [
   { label: "Sem 1", color: "#3b82f6", bg: "#eff6ff" },
   { label: "Sem 2", color: "#10b981", bg: "#ecfdf5" },
@@ -133,55 +139,100 @@ export default function PensumArbol() {
 
   return (
     <div style={css.root}>
-      <div style={css.header}>
-        <div>
-          <h1 style={css.tt}>{pensum.carrera?.nombre || "Pensum"}</h1>
-          <p style={css.sb}>{pensum.anioCreacion} · {totalM} materias · {totalC} créditos{pensum.creditos_totales ? ` / meta: ${pensum.creditos_totales}` : ""}</p>
-        </div>
-        <button onClick={() => navigate(`/admin/pensum/${id}`)} style={css.btn}>← Detalle</button>
-      </div>
-
-      <div style={css.filters}>
-        <button onClick={() => setFiltro(null)} style={{ ...css.fb, ...(filtro === null ? css.fba : {}) }}>Todas</button>
-        {SEM_COLORS.filter((_, i) => sems.includes(i + 1)).map((s, i) => (
-          <button key={s.label} onClick={() => setFiltro(filtro === i + 1 ? null : i + 1)} style={{
-            ...css.fb, borderColor: s.color, color: filtro === i + 1 ? "#fff" : s.color,
-            background: filtro === i + 1 ? s.color : "white",
-          }}>
-            {s.label}
+      <header style={css.header}>
+        <div style={css.headerActions}>
+          <button
+            onClick={() => navigate('/admin/pensum')}
+            style={css.backBtn}
+            onMouseOver={(e) => { e.currentTarget.style.background = '#5b21b6' }}
+            onMouseOut={(e) => { e.currentTarget.style.background = '#7c3aed' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Volver
           </button>
-        ))}
-      </div>
-
-      <div style={css.canvas}>
-        {arbol.length > 0 ? (
-          <div style={css.forest}>
-            {arbol.map((root, i) => (
-              <div key={root.id} style={css.tree}>
-                <Subtree node={root} onTip={onTip} />
-              </div>
-            ))}
+        </div>
+        <div style={css.headerBrand}>
+          <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+            <rect width="48" height="48" rx="10" fill={ADMIN_CONFIG.color} fillOpacity=".12" />
+            <path d="M12 34L24 14L36 34H12Z" stroke={ADMIN_CONFIG.color} strokeWidth="2.2" strokeLinejoin="round" fill="none" />
+            <circle cx="24" cy="24" r="3.5" fill={ADMIN_CONFIG.color} fillOpacity=".7" />
+          </svg>
+          <span style={{ ...css.headerTitle, color: ADMIN_CONFIG.color }}>Diagrama Pensum</span>
+        </div>
+      </header>
+      <main style={css.contentContainer}>
+        <div style={css.contentHeader}>
+          <div>
+            <h1 style={css.tt}>{pensum.carrera?.nombre || "Pensum"}</h1>
+            <p style={css.sb}>{pensum.anioCreacion} · {totalM} materias · {totalC} créditos{pensum.creditos_totales ? ` / meta: ${pensum.creditos_totales}` : ""}</p>
           </div>
-        ) : (
-          <div style={css.empty}>No hay materias en este semestre</div>
+          <button onClick={() => navigate(`/admin/pensum/${id}`)} style={css.btn}
+            onMouseOver={(e) => { e.currentTarget.style.background = "#f1f5f9" }}
+            onMouseOut={(e) => { e.currentTarget.style.background = "white" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 4 }}>
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Detalle
+          </button>
+        </div>
+
+        <div style={css.filters}>
+          <button onClick={() => setFiltro(null)} style={{ ...css.fb, ...(filtro === null ? css.fba : {}) }}>Todas</button>
+          {SEM_COLORS.filter((_, i) => sems.includes(i + 1)).map((s, i) => (
+            <button key={s.label} onClick={() => setFiltro(filtro === i + 1 ? null : i + 1)} style={{
+              ...css.fb, borderColor: s.color, color: filtro === i + 1 ? "#fff" : s.color,
+              background: filtro === i + 1 ? s.color : "white",
+            }}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+
+        <div style={css.canvas}>
+          {arbol.length > 0 ? (
+            <div style={css.forest}>
+              {arbol.map((root, i) => (
+                <div key={root.id} style={css.tree}>
+                  <Subtree node={root} onTip={onTip} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={css.empty}>No hay materias en este semestre</div>
+          )}
+        </div>
+
+        {tip && (
+          <div style={{ ...css.tooltip, left: tip.x, top: tip.y }}>{tip.texto}</div>
         )}
-      </div>
 
-      {tip && (
-        <div style={{ ...css.tooltip, left: tip.x, top: tip.y }}>{tip.texto}</div>
-      )}
-
-      <div style={css.footer}>
-        <button onClick={() => navigate("/admin/pensum")} style={{ ...css.btn, border: "none", color: "#1D4ED8", padding: "0.5rem 0" }}>← Volver a pensums</button>
-      </div>
+        <div style={css.footer}>
+          <button onClick={() => navigate("/admin/pensum")} style={{ ...css.btn, border: "none", color: "#1D4ED8", padding: "0.5rem 0", display: "inline-flex", alignItems: "center", gap: 4 }}
+            onMouseOver={(e) => { e.currentTarget.style.color = "#1e40af" }}
+            onMouseOut={(e) => { e.currentTarget.style.color = "#1D4ED8" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+            Volver a pensums
+          </button>
+        </div>
+      </main>
     </div>
   );
 }
 
 const css = {
-  root: { maxWidth: "100%", margin: "0 auto", padding: "2rem", fontFamily: "'DM Sans', 'Segoe UI', sans-serif", minHeight: "100vh", background: "#fafafa" },
+  root: { fontFamily: "'DM Sans', 'Segoe UI', sans-serif", minHeight: "100vh", background: "#fafafa" },
+  contentContainer: { maxWidth: 1100, margin: "0 auto", padding: "2rem" },
   loader: { textAlign: "center", padding: "4rem", color: "#64748b", fontSize: "1rem" },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem", maxWidth: 960, margin: "0 auto 1rem" },
+  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 2rem", background: "white", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 10 },
+  headerActions: { display: "flex", alignItems: "center", gap: 10 },
+  backBtn: { display: "flex", alignItems: "center", gap: 7, padding: "0.45rem 1rem", border: "none", borderRadius: 8, background: "#7c3aed", color: "white", fontSize: "0.84rem", fontWeight: 500, cursor: "pointer" },
+  headerBrand: { display: "flex", alignItems: "center", gap: 10 },
+  headerTitle: { fontWeight: 700, fontSize: "1rem", letterSpacing: "-0.01em" },
+  contentHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem", maxWidth: 960, margin: "0 auto 1rem" },
   tt: { fontSize: "1.5rem", fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" },
   sb: { fontSize: "0.85rem", color: "#64748b", margin: "0.3rem 0 0" },
   btn: { padding: "0.4rem 0.85rem", background: "white", color: "#1e293b", border: "1.5px solid #e2e8f0", borderRadius: 6, fontSize: "0.82rem", fontWeight: 500, cursor: "pointer" },

@@ -1,18 +1,25 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getUsuarios, eliminarUsuario, asignarRol } from "../../services/api";
 import FormCrearUsuario from "../../components/forms/FormCrearUsuario";
+
+const ADMIN_CONFIG = {
+  color: "#7c3aed",
+  bg: "#faf5ff",
+  accent: "#ede9fe",
+};
 
 const ROLES = ["Estudiante", "Docente", "Administrador"];
 
 const ROL_CONFIG = {
   Administrador: { color: "#7C3AED", bg: "#EDE9FE" },
-  Docente:       { color: "#0369A1", bg: "#E0F2FE" },
-  Estudiante:    { color: "#047857", bg: "#D1FAE5" },
+  Docente: { color: "#0369A1", bg: "#E0F2FE" },
+  Estudiante: { color: "#047857", bg: "#D1FAE5" },
 };
 
 function Avatar({ nombre, apellido }) {
   const initials = `${nombre?.[0] ?? ""}${apellido?.[0] ?? ""}`.toUpperCase();
-  const colors = ["#6366F1","#EC4899","#F59E0B","#10B981","#3B82F6","#8B5CF6","#EF4444","#14B8A6"];
+  const colors = ["#6366F1", "#EC4899", "#F59E0B", "#10B981", "#3B82F6", "#8B5CF6", "#EF4444", "#14B8A6"];
   const color = colors[(nombre?.charCodeAt(0) ?? 0) % colors.length];
   return (
     <div style={{
@@ -27,14 +34,15 @@ function Avatar({ nombre, apellido }) {
 }
 
 export default function GestionUsuarios() {
-  const [usuarios, setUsuarios]       = useState([]);
-  const [cargando, setCargando]       = useState(true);
-  const [error, setError]             = useState("");
+  const navigate = useNavigate();
+  const [usuarios, setUsuarios] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
   const [mostrarForm, setMostrarForm] = useState(false);
-  const [busqueda, setBusqueda]       = useState("");
-  const [confirmId, setConfirmId]     = useState(null);
-  const [filtroRol, setFiltroRol]     = useState("Todos");
-  const [notif, setNotif]             = useState(null);
+  const [busqueda, setBusqueda] = useState("");
+  const [confirmId, setConfirmId] = useState(null);
+  const [filtroRol, setFiltroRol] = useState("Todos");
+  const [notif, setNotif] = useState(null);
 
   useEffect(() => { cargarUsuarios(); }, []);
 
@@ -89,6 +97,31 @@ export default function GestionUsuarios() {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#F8FAFC", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
 
+      {/* Header */}
+      <header style={styles.header}>
+        <div style={styles.headerActions}>
+          <button
+            onClick={() => navigate('/admin/bienvenida')}
+            style={styles.backBtn}
+            onMouseOver={(e) => { e.currentTarget.style.background = '#5b21b6' }}
+            onMouseOut={(e) => { e.currentTarget.style.background = '#7c3aed' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Volver
+          </button>
+        </div>
+        <div style={styles.headerBrand}>
+          <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+            <rect width="48" height="48" rx="10" fill={ADMIN_CONFIG.color} fillOpacity=".12" />
+            <path d="M12 34L24 14L36 34H12Z" stroke={ADMIN_CONFIG.color} strokeWidth="2.2" strokeLinejoin="round" fill="none" />
+            <circle cx="24" cy="24" r="3.5" fill={ADMIN_CONFIG.color} fillOpacity=".7" />
+          </svg>
+          <span style={{ ...styles.headerTitle, color: ADMIN_CONFIG.color }}>Gestion Usuarios</span>
+        </div>
+      </header>
+
       {/* Notificación */}
       {notif && (
         <div style={{
@@ -99,7 +132,10 @@ export default function GestionUsuarios() {
           padding: "12px 20px", borderRadius: 10, fontSize: 13, fontWeight: 500,
           boxShadow: "0 4px 20px rgba(0,0,0,0.1)", animation: "slideIn 0.3s ease",
         }}>
-          {notif.tipo === "error" ? "✕ " : "✓ "}{notif.msg}
+          {notif.tipo === "error"
+            ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, display: "inline", verticalAlign: "middle", marginRight: 4 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, display: "inline", verticalAlign: "middle", marginRight: 4 }}><polyline points="20 6 9 17 4 12" /></svg>}
+          {notif.msg}
         </div>
       )}
 
@@ -161,7 +197,12 @@ export default function GestionUsuarios() {
           display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center",
         }}>
           <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-            <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: "#94A3B8" }}>🔍</span>
+            <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: "#94A3B8", display: "flex" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </span>
             <input
               type="text"
               placeholder="Buscar por nombre, email o usuario..."
@@ -192,7 +233,7 @@ export default function GestionUsuarios() {
         {/* Error */}
         {error && (
           <div style={{ backgroundColor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA", padding: "12px 16px", borderRadius: 10, marginBottom: 14, fontSize: 13 }}>
-            ⚠️ {error}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg> {error}
           </div>
         )}
 
@@ -200,11 +241,19 @@ export default function GestionUsuarios() {
         <div style={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, overflow: "hidden" }}>
           {cargando ? (
             <div style={{ padding: 60, textAlign: "center", color: "#94A3B8" }}>
-              <p style={{ margin: 0, fontSize: 14 }}>⏳ Cargando usuarios...</p>
+              <p style={{ margin: 0, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}>
+                  <circle cx="12" cy="12" r="10" strokeDasharray="31.4 31.4" strokeLinecap="round" />
+                </svg>
+                Cargando usuarios...
+              </p>
             </div>
           ) : filtrados.length === 0 ? (
             <div style={{ padding: 60, textAlign: "center" }}>
-              <p style={{ fontSize: 36, margin: "0 0 8px" }}>👤</p>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5" style={{ margin: "0 0 8px" }}>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
               <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#64748B" }}>No se encontraron usuarios</p>
               <p style={{ margin: "4px 0 0", fontSize: 13, color: "#94A3B8" }}>Prueba con otros términos de búsqueda</p>
             </div>
@@ -295,7 +344,12 @@ export default function GestionUsuarios() {
       {confirmId && (
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 16 }}>
           <div style={{ backgroundColor: "#fff", borderRadius: 16, padding: 28, width: "100%", maxWidth: 360, textAlign: "center", boxShadow: "0 25px 60px rgba(0,0,0,0.2)" }}>
-            <div style={{ width: 52, height: 52, backgroundColor: "#FEF2F2", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 22 }}>🗑️</div>
+            <div style={{ width: 52, height: 52, backgroundColor: "#FEF2F2", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+            </div>
             <h3 style={{ margin: "0 0 8px", fontSize: 17, fontWeight: 700, color: "#0F172A" }}>¿Eliminar usuario?</h3>
             <p style={{ color: "#64748B", fontSize: 13, margin: "0 0 24px" }}>
               Esta acción desactivará al usuario. No podrá iniciar sesión en el sistema.
@@ -314,7 +368,15 @@ export default function GestionUsuarios() {
         </div>
       )}
 
-      <style>{`@keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }`}</style>
+      <style>{`@keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } } @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }`}</style>
     </div>
   );
 }
+
+const styles = {
+  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 2rem", background: "white", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 10 },
+  headerActions: { display: "flex", alignItems: "center", gap: 10 },
+  backBtn: { display: "flex", alignItems: "center", gap: 7, padding: "0.45rem 1rem", border: "none", borderRadius: 8, background: "#7c3aed", color: "white", fontSize: "0.84rem", fontWeight: 500, cursor: "pointer" },
+  headerBrand: { display: "flex", alignItems: "center", gap: 10 },
+  headerTitle: { fontWeight: 700, fontSize: "1rem", letterSpacing: "-0.01em" },
+};

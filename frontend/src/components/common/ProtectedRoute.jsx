@@ -5,7 +5,10 @@ export default function ProtectedRoute({ children, roles }) {
   const { isAuthenticated, user } = useAuthStore();
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (roles && !roles.includes(user?.rol)) return <Navigate to="/bienvenida" replace />;
+  if (roles && !roles.includes(user?.rol)) {
+    const fallback = { Administrador: "/admin/bienvenida", Docente: "/docente/bienvenida", Estudiante: "/estudiante/bienvenida" };
+    return <Navigate to={fallback[user?.rol] || "/login"} replace />;
+  }
 
   return children;
 }
