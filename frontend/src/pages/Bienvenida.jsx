@@ -20,25 +20,25 @@ const ROL_CONFIG = {
     links: [
       {
         label: "Gestionar Oferta Académica",
-        icon: "📚",
+        icon: "ph ph-books",
         // Estructura interna para habilitar el despliegue dinámico
         subLinks: [
-          { label: "Crear Oferta Académica", href: "/admin/cursos/gestion", icon: "⚙️" },
-          { label: "Consultar Oferta Académica", href: "/admin/cursos/consulta", icon: "🔍" }
+          { label: "Crear Oferta Académica", href: "/admin/cursos/gestion", icon: "ph ph-gear" },
+          { label: "Consultar Oferta Académica", href: "/admin/cursos/consulta", icon: "ph ph-magnifying-glass" }
         ]
       },
-      { label: "Usuarios", href: "/admin/GestionarUsuarios", icon: "👥" },
+      { label: "Gestionar Usuarios", href: "/admin/GestionarUsuarios", icon: "ph ph-users" },
       {
-        label: "Reportes",
-        icon: "📊",
+        label: "Ver Reportes",
+        icon: "ph ph-chart-bar",
         subLinks: [
-          { label: "Reportes por carrera", href: "/admin/reportes", icon: "📋" },
-          { label: "Reportes de estudiantes", href: "/admin/reportes/estudiantes", icon: "👨‍🎓" },
-          { label: "Reportes de docentes", href: "/admin/reportes/docentes", icon: "👨‍🏫" }
+          { label: "Generar Reportes por Carrera", href: "/admin/reportes", icon: "ph ph-file-text" },
+          { label: "Generar Reportes de Estudiantes", href: "/admin/reportes/estudiantes", icon: "ph ph-student" },
+          { label: "Generar Reportes de Docentes", href: "/admin/reportes/docentes", icon: "ph ph-chalkboard-teacher" }
         ]
       },
-      { label: "Gestionar Pensum", href: "/admin/pensum", icon: "🗂️" },
-      { label: "Perfil", href: "/admin/perfil", icon: "👤" },
+      { label: "Gestionar Pensum", href: "/admin/pensum", icon: "ph ph-folders" },
+      { label: "Gestionar Perfil", href: "/admin/perfil", icon: "ph ph-user" },
     ],
   },
   Docente: {
@@ -54,21 +54,9 @@ const ROL_CONFIG = {
     greeting: "Portal Docente",
     desc: "Consulta tus cursos asignados, registra calificaciones y gestiona horarios.",
     links: [
-      { label: "Mis Cursos", href: "/docente/cursos", icon: "🎓" },
-      { label: "Calificaciones", href: "/docente/cursos", icon: "✏️" },
-      { label: "Horarios", href: "/docente/horarios", icon: "🗓️" },
-      {
-        label: "Reportes",
-        icon: "📊",
-        subLinks: [
-          { label: "Periodo académico", href: "/docente/reportes/periodo-academico", icon: "🗓️" },
-          { label: "Estudiantes", href: "/docente/reportes/estudiantes", icon: "👨‍🎓" },
-          { label: "Materias", href: "/docente/reportes/materias", icon: "📚" },
-          { label: "Cursos", href: "/docente/reportes/cursos", icon: "🎓" },
-          { label: "Calificaciones", href: "/docente/reportes/calificaciones", icon: "📝" }
-        ]
-      },
-      { label: "Mi Perfil", href: "/docente/perfil", icon: "👤" },
+      { label: "Ver mis Cursos", href: "/docente/cursos", icon: "ph ph-chalkboard-teacher" },
+      { label: "Generar Reportes", href: "/docente/reportes", icon: "ph ph-chart-bar" },
+      { label: "Mi Perfil", href: "/docente/perfil", icon: "ph ph-user" },
     ],
   },
   Estudiante: {
@@ -84,10 +72,10 @@ const ROL_CONFIG = {
     greeting: "Portal Estudiantil",
     desc: "Consulta cursos disponibles, tus inscripciones y el progreso en tu carrera.",
     links: [
-      { label: "Mis Cursos", href: "/estudiante/inscripciones", icon: "📋" },
-      { label: "Registro de Materia", href: "/estudiante/cursos", icon: "🔍" },
-      { label: "Generar Reportes", href: "/estudiante/reportes", icon: "📊" },
-      { label: "Mi Perfil", href: "/estudiante/perfil", icon: "👤" },
+      { label: "Mis Cursos", href: "/estudiante/inscripciones", icon: "ph ph-notebook" },
+      { label: "Registrar Nueva Materia", href: "/estudiante/cursos", icon: "ph ph-book-bookmark" },
+      { label: "Generar Reportes", href: "/estudiante/reportes", icon: "ph ph-chart-bar" },
+      { label: "Mi Perfil", href: "/estudiante/perfil", icon: "ph ph-user" },
     ],
   },
 };
@@ -234,9 +222,27 @@ export default function Bienvenida() {
           </button>
         </div>
       </header>
+      {/* Info strip */}
+        <div style={styles.infoStrip}>
+          <div style={styles.infoItem}>
+            <span style={styles.infoLabel}>Usuario</span>
+            <span style={styles.infoVal}>{user?.username}</span>
+          </div>
+          <div style={styles.infoSep} />
+          <div style={styles.infoItem}>
+            <span style={styles.infoLabel}>Correo</span>
+            <span style={styles.infoVal}>{user?.email}</span>
+          </div>
+          <div style={styles.infoSep} />
+          <div style={styles.infoItem}>
+            <span style={styles.infoLabel}>Rol</span>
+            <span style={{ ...styles.infoVal, color: config.color, fontWeight: 600 }}>{user?.rol}</span>
+          </div>
+        </div>
 
       {/* Main content */}
       <main style={styles.main}>
+
         {/* Hero card */}
         <div style={{ ...styles.heroCard, borderTop: `4px solid ${config.color}` }}>
           <div style={{ ...styles.roleChip, background: config.accent, color: config.color }}>
@@ -264,7 +270,7 @@ export default function Bienvenida() {
                       onMouseOver={(e) => (e.currentTarget.style.borderColor = config.color)}
                       onMouseOut={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
                     >
-                      <span style={styles.linkEmoji}>{link.icon}</span>
+                      <i className={link.icon} style={styles.linkIcon}></i>
                       <span style={styles.linkLabel}>{link.label}</span>
                       {/* La flecha rota 90 grados si el menú está activo */}
                       <svg
@@ -284,7 +290,7 @@ export default function Bienvenida() {
                         onMouseOver={(e) => (e.currentTarget.style.borderColor = config.color)}
                         onMouseOut={(e) => (e.currentTarget.style.borderColor = config.accent)}
                       >
-                        <span style={styles.linkEmoji}>{subLink.icon}</span>
+                        <i className={subLink.icon} style={styles.linkIcon}></i>
                         <span style={{ ...styles.linkLabel, fontSize: "0.85rem" }}>{subLink.label}</span>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={config.color} strokeWidth="2.5" style={{ marginLeft: "auto" }}>
                           <path d="M5 12h14M12 5l7 7-7 7" />
@@ -298,13 +304,13 @@ export default function Bienvenida() {
               // Renderizado normal para enlaces estándar sin dependencias
               return (
                 <button
-                  key={link.href}
+                  key={`${link.href}-${link.label}`}
                   onClick={() => navigate(link.href)}
                   style={{ ...styles.linkCard, "--accent": config.color }}
                   onMouseOver={(e) => (e.currentTarget.style.borderColor = config.color)}
                   onMouseOut={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
                 >
-                  <span style={styles.linkEmoji}>{link.icon}</span>
+                  <i className={link.icon} style={styles.linkIcon}></i>
                   <span style={styles.linkLabel}>{link.label}</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={config.color} strokeWidth="2.5" style={{ marginLeft: "auto", flexShrink: 0 }}>
                     <path d="M5 12h14M12 5l7 7-7 7" />
@@ -315,23 +321,6 @@ export default function Bienvenida() {
           </div>
         </div>
 
-        {/* Info strip */}
-        <div style={styles.infoStrip}>
-          <div style={styles.infoItem}>
-            <span style={styles.infoLabel}>Usuario</span>
-            <span style={styles.infoVal}>{user?.username}</span>
-          </div>
-          <div style={styles.infoSep} />
-          <div style={styles.infoItem}>
-            <span style={styles.infoLabel}>Correo</span>
-            <span style={styles.infoVal}>{user?.email}</span>
-          </div>
-          <div style={styles.infoSep} />
-          <div style={styles.infoItem}>
-            <span style={styles.infoLabel}>Rol</span>
-            <span style={{ ...styles.infoVal, color: config.color, fontWeight: 600 }}>{user?.rol}</span>
-          </div>
-        </div>
       </main>
     </div>
   );
@@ -370,7 +359,7 @@ const styles = {
   }, main: {
     maxWidth: 680,
     margin: "0 auto",
-    padding: "3rem 1.5rem 2rem",
+    padding: "1.25rem 1.5rem 2rem",
     display: "flex",
     flexDirection: "column",
     gap: "1.25rem",
@@ -379,7 +368,7 @@ const styles = {
     background: "white",
     borderRadius: 16,
     padding: "2rem 2rem 1.75rem",
-    boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
+    boxShadow: "0 2px 16px rgba(0, 0, 0, 0.31)",
   },
   roleChip: {
     display: "inline-flex",
@@ -418,20 +407,45 @@ const styles = {
     textAlign: "left",
     transition: "border-color .15s, background .15s",
     width: "100%",
-  }, linkEmoji: { fontSize: "1.15rem", flexShrink: 0 },
+  }, linkIcon: {
+  fontSize: "1.2rem",
+  color: "#000000",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexShrink: 0,
+},
   linkLabel: { fontSize: "0.9rem", fontWeight: 500, color: "#1e293b" },
   infoStrip: {
-    background: "white",
-    borderRadius: 12,
-    padding: "1rem 1.5rem",
+    width: "100%",
+    background: "#ffffff",
+    borderBottom: "1px solid #e2e8f0",
     display: "flex",
+    justifyContent: "center",
     alignItems: "center",
-    gap: "1.5rem",
-    boxShadow: "0 1px 8px rgba(0,0,0,0.05)",
+    gap: "3rem",
+    padding: "0.9rem 2rem",
+    boxSizing: "border-box",
     flexWrap: "wrap",
   },
-  infoItem: { display: "flex", flexDirection: "column", gap: 2 },
-  infoLabel: { fontSize: "0.73rem", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" },
-  infoVal: { fontSize: "0.88rem", color: "#1e293b" },
-  infoSep: { width: 1, height: 32, background: "#e2e8f0", flexShrink: 0 },
+  infoItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  infoLabel: {
+    fontSize: "0.78rem",
+    color: "#64748b",
+    fontWeight: 600,
+  },
+  infoVal: {
+    fontSize: "0.88rem",
+    color: "#0f172a",
+    fontWeight: 500,
+  },
+  infoSep: {
+    width: 1,
+    height: 18,
+    background: "#dbe3ee",
+  },
 };
