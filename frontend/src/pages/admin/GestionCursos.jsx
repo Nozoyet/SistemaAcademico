@@ -276,7 +276,13 @@ function PasoOferta({ periodo, onNext, onBack }) {
     onNext([...regulares, ...extras]);
   };
 
-  if (loading) return <div style={{ color: C.textMuted, padding: 40, textAlign: "center" }}>Cargando pensum…</div>;
+  if (loading) return (
+    <div style={{ textAlign: "center", padding: 40 }}>
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}.spin{display:inline-block;animation:spin 1s linear infinite}`}</style>
+      <div style={{ fontSize: 36, marginBottom: 12, color: "#7c3aed" }}><i className="bi bi-hourglass-split spin"></i></div>
+      <p style={{ margin: 0, color: C.textMuted }}>Cargando pensum…</p>
+    </div>
+  );
 
   const regulares = pensum?.materias?.filter(m => !m.esElectiva || m.esElectiva === false || m.esElectiva === 0 || m.esElectiva === "0") || [];
   const semestres = [...new Set(regulares.map(m => m.semestre || "S/N"))].sort((a, b) => Number(a) - Number(b));

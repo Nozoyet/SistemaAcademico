@@ -565,7 +565,11 @@ export default function PensumForm() {
                   }}
                 />
                 {loadingExisting ? (
-                  <div style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>Cargando materias...</div>
+                  <div style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>
+                    <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}.spin{display:inline-block;animation:spin 1s linear infinite}`}</style>
+                    <div style={{ fontSize: 36, marginBottom: 12, color: "#7c3aed" }}><i className="bi bi-hourglass-split spin"></i></div>
+                    <p style={{ margin: 0 }}>Cargando materias...</p>
+                  </div>
                 ) : existingMaterias.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>No hay materias registradas en el sistema.</div>
                 ) : (

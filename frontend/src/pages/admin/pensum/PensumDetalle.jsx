@@ -54,7 +54,13 @@ export default function PensumDetalle() {
 
   const semsDisponibles = [...new Set(materiasPensum.map((m) => m.semestre).filter(Boolean))].sort((a, b) => a - b);
 
-  if (loading) return <div style={styles.loader}>Cargando...</div>;
+  if (loading) return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#f8fafc", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}.spin{display:inline-block;animation:spin 1s linear infinite}`}</style>
+      <div style={{ fontSize: 36, marginBottom: 12, color: "#7c3aed" }}><i className="bi bi-hourglass-split spin"></i></div>
+      <p style={{ margin: 0 }}>Cargando detalle del pensum...</p>
+    </div>
+  );
   if (!pensum) return null;
 
   const creditosReales = materiasPensum.reduce((s, m) => s + (m.creditos || 0), 0);

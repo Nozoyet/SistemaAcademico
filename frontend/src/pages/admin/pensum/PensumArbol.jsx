@@ -126,7 +126,13 @@ export default function PensumArbol() {
     }).catch(() => navigate("/admin/pensum"));
   }, [id]);
 
-  if (loading) return <div style={css.loader}>Cargando...</div>;
+  if (loading) return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#fafafa", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}.spin{display:inline-block;animation:spin 1s linear infinite}`}</style>
+      <div style={{ fontSize: 36, marginBottom: 12, color: "#7c3aed" }}><i className="bi bi-hourglass-split spin"></i></div>
+      <p style={{ margin: 0 }}>Cargando árbol del pensum...</p>
+    </div>
+  );
   if (!pensum) return null;
 
   const todas = pensum.materias || [];
