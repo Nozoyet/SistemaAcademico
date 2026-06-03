@@ -57,6 +57,11 @@ class ReporteDocenteService
             ->when($filtros['estado'] ?? null, function ($query, $estado) {
                 $query->where('estado', $estado);
             })
+            ->when($filtros['condicion'] ?? null, function ($query, $condicion) {
+                $query->whereHas('historialAcademico', function ($q) use ($condicion) {
+                    $q->where('estado', $condicion);
+                });
+            })
             ->when($filtros['nombre'] ?? null, function ($query, $nombre) {
                 $query->whereHas('estudiante', function ($q) use ($nombre) {
                     $q->whereHas('usuario', function ($u) use ($nombre) {
@@ -150,6 +155,9 @@ class ReporteDocenteService
             })
             ->when(isset($filtros['nota_max']), function ($query) use ($filtros) {
                 $query->where('notaFinal', '<=', $filtros['nota_max']);
+            })
+            ->when($filtros['estado'] ?? null, function ($query, $estado) {
+                $query->where('estado', $estado);
             })
             ->where('estadoA', 1)
             ->get()

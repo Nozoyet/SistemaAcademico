@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import useAuthStore from "../../stores/useAuthStore";
@@ -14,7 +14,7 @@ const C = {
 export default function ReporteEstudiantes() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const [filtros, setFiltros] = useState({ periodo_id: "", materia_id: "", curso_id: "", estado: "", nombre: "", nota_min: "", nota_max: "" });
+  const [filtros, setFiltros] = useState({ periodo_id: "", materia_id: "", curso_id: "", estado: "", nombre: "", nota_min: "", nota_max: "", condicion: "" });
   const [opciones, setOpciones] = useState({ periodos: [], materias: [], cursos: [] });
   const [preview, setPreview] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,6 +28,15 @@ export default function ReporteEstudiantes() {
       if (r.data?.success) setOpciones(r.data.data);
     }).catch(() => {});
   }, []);
+
+  const prevFiltros = useRef(filtros);
+  const [autoReady, setAutoReady] = useState(false);
+
+  useEffect(() => {
+    if (!autoReady) { setAutoReady(true); return; }
+    const timer = setTimeout(() => generarPreview(), 400);
+    return () => clearTimeout(timer);
+  }, [filtros]);
 
   const change = (e) => setFiltros({ ...filtros, [e.target.name]: e.target.value });
   const changeFiltros = (nuevos) => setFiltros(nuevos);
@@ -115,7 +124,7 @@ export default function ReporteEstudiantes() {
           {error && <div style={s.errorBox}><i className="bi bi-exclamation-triangle-fill"></i> {error}</div>}
 
           <FiltrosReportes
-            campos={["periodo", "materia", "curso", "nombre", "nota", "estado"]}
+            campos={["periodo", "materia", "curso", "nombre", "nota", "estado", "condicion", "buscar"]}
             opciones={opciones}
             filtros={filtros}
             onChange={changeFiltros}
@@ -126,6 +135,10 @@ export default function ReporteEstudiantes() {
               { value: "Activa", label: "Activa" },
               { value: "Completada", label: "Completada" },
               { value: "Cancelada", label: "Cancelada" },
+            ]}
+            condicionOpciones={[
+              { value: "Aprobado", label: "Aprobado" },
+              { value: "Reprobado", label: "Reprobado" },
             ]}
           />
         </div>

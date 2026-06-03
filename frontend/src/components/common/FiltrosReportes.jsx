@@ -37,6 +37,7 @@ export default function FiltrosReportes({
   descripcion = "",
   icon,
   estadoOpciones,
+  condicionOpciones,
 }) {
   const materiasDisponibles = useMemo(() => {
     if (!filtros.periodo_id) return opciones.materias;
@@ -154,6 +155,17 @@ export default function FiltrosReportes({
             <label style={s.filterLabel}>Nombre</label>
             <input name="nombre" value={filtros.nombre || ""} onChange={handleInputChange}
               placeholder="Buscar por nombre" style={s.filterSelect} />
+          </div>
+        )}
+        {mostrar("condicion") && (
+          <div style={s.filterGroup}>
+            <label style={s.filterLabel}>Condición</label>
+            <select name="condicion" value={filtros.condicion || ""} onChange={handleInputChange} style={s.filterSelect}>
+              <option value="">Todas</option>
+              {(condicionOpciones || []).map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
           </div>
         )}
         {mostrar("semestre") && (

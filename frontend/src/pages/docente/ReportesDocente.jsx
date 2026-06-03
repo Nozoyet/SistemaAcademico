@@ -16,7 +16,7 @@ export default function ReportesDocente() {
   const navigate = useNavigate();
   const { cursoId: paramCursoId } = useParams();
   const { user, logout } = useAuthStore();
-  const [filtros, setFiltros] = useState({ periodo_id: "", materia_id: "", curso_id: paramCursoId || "" });
+  const [filtros, setFiltros] = useState({ periodo_id: "", materia_id: "", curso_id: paramCursoId || "", condicion: "" });
   const [opciones, setOpciones] = useState({ periodos: [], materias: [], cursos: [] });
   const [reporte, setReporte] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -66,6 +66,19 @@ export default function ReportesDocente() {
 
   const changeFiltros = (nuevos) => setFiltros(nuevos);
 
+  const estudiantesFiltrados = reporte?.estudiantes?.filter(e =>
+    !filtros.condicion || e.estado === filtros.condicion
+  ) || [];
+
+  const resumenFiltrado = {
+    aprobados: estudiantesFiltrados.filter(e => e.estado === "Aprobado").length,
+    reprobados: estudiantesFiltrados.filter(e => e.estado === "Reprobado").length,
+    cursando: estudiantesFiltrados.filter(e => e.estado !== "Aprobado" && e.estado !== "Reprobado").length,
+    promedio: estudiantesFiltrados.length > 0
+      ? (estudiantesFiltrados.reduce((s, e) => s + (Number(e.notaFinal) || 0), 0) / estudiantesFiltrados.length)
+      : 0,
+  };
+
   const handleLogout = async () => {
     await logout();
     navigate("/login", { replace: true });
@@ -102,7 +115,7 @@ export default function ReportesDocente() {
           )}
 
           <FiltrosReportes
-            campos={["periodo", "materia", "curso"]}
+            campos={["periodo", "materia", "curso", "condicion"]}
             opciones={opciones}
             filtros={filtros}
             onChange={changeFiltros}
@@ -110,6 +123,10 @@ export default function ReportesDocente() {
             color={C.accent}
             titulo="Reporte de Curso"
             descripcion="Selecciona un curso para ver sus calificaciones"
+            condicionOpciones={[
+              { value: "Aprobado", label: "Aprobado" },
+              { value: "Reprobado", label: "Reprobado" },
+            ]}
           />
         </div>
 
@@ -127,7 +144,7 @@ export default function ReportesDocente() {
               <div style={{ display: "flex", gap: 12 }}>
                 {[["aprobados", C.green], ["reprobados", C.red], ["cursando", C.amber]].map(([k, col]) => (
                   <div key={k} style={{ textAlign: "center", padding: "0.4rem 0.8rem", background: col + "12", borderRadius: 8, border: `1px solid ${col}33` }}>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: col, lineHeight: 1 }}>{reporte.resumen?.[k] || 0}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: col, lineHeight: 1 }}>{resumenFiltrado[k]}</div>
                     <div style={{ fontSize: 9, color: C.textMuted, fontWeight: 600, textTransform: "uppercase" }}>{k}</div>
                   </div>
                 ))}
@@ -145,7 +162,7 @@ export default function ReportesDocente() {
                 <strong>Periodo:</strong> {reporte.curso?.periodo}
               </div>
               <div style={{ background: C.grayDim, padding: "0.7rem 1rem", borderRadius: 10, border: `1px solid ${C.border}` }}>
-                <strong>Promedio:</strong> {reporte.resumen?.promedio ? Number(reporte.resumen.promedio).toFixed(1) : "—"}
+                <strong>Promedio:</strong> {resumenFiltrado.promedio ? resumenFiltrado.promedio.toFixed(1) : "—"}
               </div>
             </div>
 
@@ -161,7 +178,7 @@ export default function ReportesDocente() {
                   </tr>
                 </thead>
                 <tbody>
-                  {reporte.estudiantes?.map((e, idx) => {
+                  {estudiantesFiltrados.map((e, idx) => {
                     const estadoColor = e.estado === "Aprobado" ? C.green : e.estado === "Reprobado" ? C.red : C.amber;
                     return (
                       <tr key={idx} style={{ borderBottom: `1px solid ${C.border}`, background: idx % 2 === 0 ? "#f8fafc" : "white" }}>
@@ -217,7 +234,7 @@ export default function ReportesDocente() {
         title="Reporte de Calificaciones"
         tipo={modalType}
         color="#0369a1"
-        data={reporte?.estudiantes || []}
+        data={estudiantesFiltrados}
         columns={[
           { key: "matricula", label: "Matrícula", width: "18%" },
           { key: "estudiante", label: "Estudiante", width: "32%" },
@@ -231,14 +248,14 @@ export default function ReportesDocente() {
           { label: "Carrera", value: reporte?.curso?.carrera || "—" },
         ]}
         stats={[
-          { label: "Aprobados", value: reporte?.resumen?.aprobados || 0, bg: "#d1fae5", text: "#059669" },
-          { label: "Reprobados", value: reporte?.resumen?.reprobados || 0, bg: "#fee2e2", text: "#dc2626" },
-          { label: "Cursando", value: reporte?.resumen?.cursando || 0, bg: "#fef3c7", text: "#d97706" },
+          { label: "Aprobados", value: resumenFiltrado.aprobados, bg: "#d1fae5", text: "#059669" },
+          { label: "Reprobados", value: resumenFiltrado.reprobados, bg: "#fee2e2", text: "#dc2626" },
+          { label: "Cursando", value: resumenFiltrado.cursando, bg: "#fef3c7", text: "#d97706" },
         ]}
         footerExtra={
           <>
-            <span><strong>Promedio General:</strong> {reporte?.resumen?.promedio ? Number(reporte.resumen.promedio).toFixed(1) : "—"}</span>
-            <span><strong>Total Estudiantes:</strong> {reporte?.estudiantes?.length || 0}</span>
+            <span><strong>Promedio General:</strong> {resumenFiltrado.promedio ? resumenFiltrado.promedio.toFixed(1) : "—"}</span>
+            <span><strong>Total Estudiantes:</strong> {estudiantesFiltrados.length || 0}</span>
           </>
         }
       />

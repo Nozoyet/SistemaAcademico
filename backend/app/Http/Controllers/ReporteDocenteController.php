@@ -96,6 +96,7 @@ class ReporteDocenteController extends Controller
             'turno' => 'nullable|string',
             'nota_min' => 'nullable|numeric',
             'nota_max' => 'nullable|numeric',
+            'condicion' => 'nullable|string',
         ]);
 
         $data = $this->reporteService->generarPreview(

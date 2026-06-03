@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import useAuthStore from "../../stores/useAuthStore";
@@ -28,6 +28,14 @@ export default function ReporteCalificaciones() {
       if (r.data?.success) setOpciones(r.data.data);
     }).catch(() => {});
   }, []);
+
+  const [autoReady, setAutoReady] = useState(false);
+
+  useEffect(() => {
+    if (!autoReady) { setAutoReady(true); return; }
+    const timer = setTimeout(() => generarPreview(), 400);
+    return () => clearTimeout(timer);
+  }, [filtros]);
 
   const change = (e) => setFiltros({ ...filtros, [e.target.name]: e.target.value });
   const changeFiltros = (nuevos) => setFiltros(nuevos);
@@ -137,7 +145,7 @@ export default function ReporteCalificaciones() {
           {error && <div style={s.errorBox}><i className="bi bi-exclamation-triangle-fill"></i> {error}</div>}
 
           <FiltrosReportes
-            campos={["periodo", "materia", "curso", "nombre", "nota", "estado"]}
+            campos={["periodo", "materia", "curso", "nombre", "nota", "estado", "buscar"]}
             opciones={opciones}
             filtros={filtros}
             onChange={changeFiltros}
@@ -147,7 +155,6 @@ export default function ReporteCalificaciones() {
             estadoOpciones={[
               { value: "Aprobado", label: "Aprobado" },
               { value: "Reprobado", label: "Reprobado" },
-              { value: "Retirado", label: "Retirado" },
             ]}
           />
         </div>
