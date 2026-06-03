@@ -142,43 +142,52 @@ export default function FormCrearUsuario({ onUsuarioCreado, onCancelar }) {
   });
 
   const errMsg = (name) => errores[name] && touched[name] ? (
-    <span style={{ fontSize: 11, color: "#EF4444", marginTop: 3, display: "block" }}>
-      ⚠ {errores[name]}
+    <span style={{ fontSize: 11, color: "#EF4444", marginTop: 3, display: "flex", alignItems: "center", gap: 4 }}>
+      <i className="ph ph-warning"></i> {errores[name]}
     </span>
   ) : null;
 
   const okMsg = (name, label) => !errores[name] && touched[name] && form[name] ? (
-    <span style={{ fontSize: 11, color: "#10B981", marginTop: 3, display: "block" }}>✓ {label}</span>
+    <span style={{ fontSize: 11, color: "#10B981", marginTop: 3, display: "flex", alignItems: "center", gap: 4 }}>
+      <i className="ph ph-check-circle"></i> {label}
+    </span>
   ) : null;
 
   const lbl = {
     display: "block", fontSize: 12, fontWeight: 600,
     color: "#64748B", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.6,
   };
-  const secHdr = {
-    fontSize: 11, fontWeight: 700, color: "#6366F1", textTransform: "uppercase",
+
+  const secHdr = (color) => ({
+    fontSize: 11, fontWeight: 700, color, textTransform: "uppercase",
     letterSpacing: 1.5, margin: "6px 0 12px", display: "flex", alignItems: "center", gap: 8,
-  };
+  });
+
+  const SecIcon = ({ icon, bg }) => (
+    <span style={{ width: 20, height: 20, borderRadius: "50%", backgroundColor: bg, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#475569" }}>
+      <i className={`ph ${icon}`}></i>
+    </span>
+  );
 
   const esDocente = form.rol === "Docente";
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", flexDirection: "column", maxHeight: "80vh" }}>
+    <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", display: "flex", flexDirection: "column", maxHeight: "80vh" }}>
 
       {/* Header */}
       <div style={{ marginBottom: 16, flexShrink: 0 }}>
-        <p style={{ fontSize: 11, fontWeight: 700, color: "#6366F1", textTransform: "uppercase", letterSpacing: 1.5, margin: "0 0 4px" }}>
-          Gestión de Usuarios
+        <p style={{ fontSize: 11, fontWeight: 700, color: "#6366F1", textTransform: "uppercase", letterSpacing: 1.5, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 6 }}>
+          <i className="ph ph-users"></i> Gestión de Usuarios
         </p>
-        <h2 style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", margin: 0, letterSpacing: -0.3 }}>
+        <h2 style={{ fontSize: 19, fontWeight: 800, color: "#0F172A", margin: 0, letterSpacing: -0.3 }}>
           Crear nuevo usuario
         </h2>
       </div>
 
       {/* Error API */}
       {apiError && (
-        <div style={{ backgroundColor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 12, flexShrink: 0 }}>
-          ✕ {apiError}
+        <div style={{ backgroundColor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 12, flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
+          <i className="ph ph-warning-circle"></i> {apiError}
         </div>
       )}
 
@@ -201,8 +210,8 @@ export default function FormCrearUsuario({ onUsuarioCreado, onCancelar }) {
 
         {/* ── DATOS PERSONALES ── */}
         <div style={{ height: 1, backgroundColor: "#F1F5F9" }} />
-        <p style={secHdr}>
-          <span style={{ width:18,height:18,borderRadius:"50%",backgroundColor:"#E0E7FF",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:10 }}>👤</span>
+        <p style={secHdr("#6366F1")}>
+          <SecIcon icon="ph-user" bg="#E0E7FF" />
           Datos personales
         </p>
 
@@ -246,10 +255,8 @@ export default function FormCrearUsuario({ onUsuarioCreado, onCancelar }) {
 
         {/* ── DATOS DEL ROL ── */}
         <div style={{ height: 1, backgroundColor: "#F1F5F9" }} />
-        <p style={secHdr}>
-          <span style={{ width:18,height:18,borderRadius:"50%",backgroundColor:esDocente?"#DBEAFE":"#D1FAE5",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:10 }}>
-            {esDocente ? "🎓" : "📚"}
-          </span>
+        <p style={secHdr(esDocente ? "#0369A1" : "#047857")}>
+          <SecIcon icon={esDocente ? "ph-chalkboard-teacher" : "ph-student"} bg={esDocente ? "#DBEAFE" : "#D1FAE5"} />
           {esDocente ? "Datos del docente" : "Datos del estudiante"}
         </p>
 
@@ -314,8 +321,8 @@ export default function FormCrearUsuario({ onUsuarioCreado, onCancelar }) {
 
         {/* ── CREDENCIALES ── */}
         <div style={{ height: 1, backgroundColor: "#F1F5F9" }} />
-        <p style={secHdr}>
-          <span style={{ width:18,height:18,borderRadius:"50%",backgroundColor:"#F5F3FF",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:10 }}>🔑</span>
+        <p style={secHdr("#6366F1")}>
+          <SecIcon icon="ph-key" bg="#F5F3FF" />
           Credenciales de acceso
         </p>
 
@@ -326,15 +333,16 @@ export default function FormCrearUsuario({ onUsuarioCreado, onCancelar }) {
             setContrasenaVisible(contrasena);
             setTouched(prev => ({ ...prev, nombreUsuario: true, contrasena: true }));
             setErrores(prev => ({ ...prev, nombreUsuario: "", contrasena: "" }));
-          }} style={{ fontSize: 12, fontWeight: 600, color: "#6366F1", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-            ⚡ Generar automáticamente
+          }} style={{ fontSize: 12, fontWeight: 600, color: "#6366F1", background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 5 }}>
+            <i className="ph ph-lightning"></i> Generar automáticamente
           </button>
         </div>
 
         {contrasenaVisible && (
-          <p style={{ fontSize: 12, color: "#047857", backgroundColor: "#D1FAE5", padding: "4px 10px", borderRadius: 6, margin: "4px 0 0" }}>
+          <div style={{ fontSize: 12, color: "#047857", backgroundColor: "#D1FAE5", padding: "8px 12px", borderRadius: 8, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="ph ph-eye"></i>
             Contraseña: <strong>{contrasenaVisible}</strong> — guárdala antes de continuar
-          </p>
+          </div>
         )}
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -349,8 +357,9 @@ export default function FormCrearUsuario({ onUsuarioCreado, onCancelar }) {
             <input type="password" name="contrasena" value={form.contrasena} onChange={handleChange} onBlur={handleBlur} style={inp("contrasena")} />
             {errMsg("contrasena")}
             {!errores["contrasena"] && touched["contrasena"] && form.contrasena && (
-              <span style={{ fontSize: 11, color: "#10B981", marginTop: 3, display: "block" }}>
-                ✓ {form.contrasena.length >= 8 ? "Contraseña fuerte" : "Contraseña aceptable"}
+              <span style={{ fontSize: 11, color: "#10B981", marginTop: 3, display: "flex", alignItems: "center", gap: 4 }}>
+                <i className="ph ph-shield-check"></i>
+                {form.contrasena.length >= 8 ? "Contraseña fuerte" : "Contraseña aceptable"}
               </span>
             )}
           </div>
@@ -361,25 +370,41 @@ export default function FormCrearUsuario({ onUsuarioCreado, onCancelar }) {
 
         {/* Botones */}
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <button type="button" onClick={onCancelar}
-            style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #E2E8F0", backgroundColor: "#fff", color: "#475569", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+          <button
+            type="button"
+            onClick={onCancelar}
+            style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #E2E8F0", backgroundColor: "#fff", color: "#475569", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "background-color 0.15s" }}
             onMouseOver={e => e.currentTarget.style.backgroundColor = "#F8FAFC"}
-            onMouseOut={e => e.currentTarget.style.backgroundColor = "#fff"}>
+            onMouseOut={e => e.currentTarget.style.backgroundColor = "#fff"}
+          >
             Cancelar
           </button>
-          <button type="submit" onClick={handleSubmit} disabled={cargando} style={{
-            padding: "10px 20px", borderRadius: 8, border: "none",
-            backgroundColor: cargando ? "#A5B4FC" : "#6366F1",
-            color: "#fff", fontSize: 13, fontWeight: 600, cursor: cargando ? "not-allowed" : "pointer",
-            boxShadow: cargando ? "none" : "0 4px 14px rgba(99,102,241,0.35)",
-          }}
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={cargando}
+            style={{
+              padding: "10px 20px", borderRadius: 8, border: "none",
+              backgroundColor: cargando ? "#A5B4FC" : "#6366F1",
+              color: "#fff", fontSize: 13, fontWeight: 600,
+              cursor: cargando ? "not-allowed" : "pointer",
+              boxShadow: cargando ? "none" : "0 4px 14px rgba(99,102,241,0.35)",
+              display: "flex", alignItems: "center", gap: 6,
+              transition: "background-color 0.15s",
+            }}
             onMouseOver={e => { if (!cargando) e.currentTarget.style.backgroundColor = "#4F46E5"; }}
-            onMouseOut={e => { if (!cargando) e.currentTarget.style.backgroundColor = "#6366F1"; }}>
-            {cargando ? "Creando..." : "Crear usuario"}
+            onMouseOut={e => { if (!cargando) e.currentTarget.style.backgroundColor = "#6366F1"; }}
+          >
+            {cargando
+              ? <><i className="ph ph-circle-notch" style={{ animation: "spin 0.8s linear infinite" }}></i> Creando...</>
+              : <><i className="ph ph-user-plus"></i> Crear usuario</>
+            }
           </button>
         </div>
 
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
