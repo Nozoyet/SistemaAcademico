@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../stores/useAuthStore";
 import { getNoLeidasCount } from "../services/notificationService";
+import Loading from "../components/common/Loading";
 
 const ROL_CONFIG = {
   Administrador: {
