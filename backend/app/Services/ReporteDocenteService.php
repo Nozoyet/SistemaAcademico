@@ -35,20 +35,20 @@ class ReporteDocenteService
     private function reporteEstudiantes($docente, array $filtros)
     {
         return Inscripcion::query()
-            ->with(['estudiante', 'curso.materia', 'curso.periodoAcademico'])
+            ->with(['estudiante', 'curso.materia', 'curso.periodoAcademico', 'historialAcademico'])
             ->whereHas('curso', function ($query) use ($docente, $filtros) {
-                $query->where('docente_id', $docente->id);
+                $query->where('idDocente', $docente->id);
 
                 if (!empty($filtros['curso_id'])) {
                     $query->where('id', $filtros['curso_id']);
                 }
 
                 if (!empty($filtros['materia_id'])) {
-                    $query->where('materia_id', $filtros['materia_id']);
+                    $query->where('idMateria', $filtros['materia_id']);
                 }
 
                 if (!empty($filtros['periodo_id'])) {
-                    $query->where('periodo_academico_id', $filtros['periodo_id']);
+                    $query->where('idPeriodoAcademico', $filtros['periodo_id']);
                 }
             })
             ->when($filtros['estudiante_id'] ?? null, function ($query, $estudianteId) {
@@ -57,6 +57,14 @@ class ReporteDocenteService
             ->when($filtros['estado'] ?? null, function ($query, $estado) {
                 $query->where('estado', $estado);
             })
+            ->when($filtros['nombre'] ?? null, function ($query, $nombre) {
+                $query->whereHas('estudiante', function ($q) use ($nombre) {
+                    $q->whereHas('usuario', function ($u) use ($nombre) {
+                        $u->whereRaw("CONCAT(nombre1, ' ', apellidoP) LIKE ?", ["%{$nombre}%"]);
+                    });
+                });
+            })
+            ->where('estadoA', 1)
             ->get();
     }
 
@@ -64,15 +72,24 @@ class ReporteDocenteService
     {
         return Materia::query()
             ->whereHas('cursos', function ($query) use ($docente, $filtros) {
-                $query->where('docente_id', $docente->id);
+                $query->where('idDocente', $docente->id);
 
                 if (!empty($filtros['periodo_id'])) {
-                    $query->where('periodo_academico_id', $filtros['periodo_id']);
+                    $query->where('idPeriodoAcademico', $filtros['periodo_id']);
                 }
             })
             ->when($filtros['materia_id'] ?? null, function ($query, $materiaId) {
                 $query->where('id', $materiaId);
             })
+            ->when($filtros['carrera_id'] ?? null, function ($query, $carreraId) {
+                $query->whereHas('pensum', function ($q) use ($carreraId) {
+                    $q->where('idCarrera', $carreraId);
+                });
+            })
+            ->when($filtros['semestre'] ?? null, function ($query, $semestre) {
+                $query->where('semestre', $semestre);
+            })
+            ->where('estadoA', 1)
             ->get();
     }
 
@@ -80,42 +97,76 @@ class ReporteDocenteService
     {
         return Curso::query()
             ->with(['materia', 'periodoAcademico', 'horario'])
-            ->where('docente_id', $docente->id)
+            ->where('idDocente', $docente->id)
             ->when($filtros['curso_id'] ?? null, function ($query, $cursoId) {
                 $query->where('id', $cursoId);
             })
             ->when($filtros['materia_id'] ?? null, function ($query, $materiaId) {
-                $query->where('materia_id', $materiaId);
+                $query->where('idMateria', $materiaId);
             })
             ->when($filtros['periodo_id'] ?? null, function ($query, $periodoId) {
-                $query->where('periodo_academico_id', $periodoId);
+                $query->where('idPeriodoAcademico', $periodoId);
             })
+            ->when($filtros['turno'] ?? null, function ($query, $turno) {
+                $query->whereHas('horarios', function ($q) use ($turno) {
+                    $q->where('turno', $turno);
+                });
+            })
+            ->where('estadoA', 1)
             ->get();
     }
 
     private function reporteCalificaciones($docente, array $filtros)
     {
         return Calificacion::query()
-            ->with(['estudiante', 'curso.materia', 'curso.periodoAcademico'])
-            ->whereHas('curso', function ($query) use ($docente, $filtros) {
-                $query->where('docente_id', $docente->id);
+            ->with(['estudiante', 'inscripcion.curso.materia', 'inscripcion.curso.periodoAcademico', 'materia'])
+            ->whereHas('inscripcion.curso', function ($query) use ($docente, $filtros) {
+                $query->where('idDocente', $docente->id);
 
                 if (!empty($filtros['curso_id'])) {
                     $query->where('id', $filtros['curso_id']);
                 }
 
                 if (!empty($filtros['materia_id'])) {
-                    $query->where('materia_id', $filtros['materia_id']);
+                    $query->where('idMateria', $filtros['materia_id']);
                 }
 
                 if (!empty($filtros['periodo_id'])) {
-                    $query->where('periodo_academico_id', $filtros['periodo_id']);
+                    $query->where('idPeriodoAcademico', $filtros['periodo_id']);
                 }
             })
             ->when($filtros['estudiante_id'] ?? null, function ($query, $estudianteId) {
-                $query->where('estudiante_id', $estudianteId);
+                $query->where('idEstudiante', $estudianteId);
             })
-            ->get();
+            ->when($filtros['nombre'] ?? null, function ($query, $nombre) {
+                $query->whereHas('estudiante', function ($q) use ($nombre) {
+                    $q->whereHas('usuario', function ($u) use ($nombre) {
+                        $u->whereRaw("CONCAT(nombre1, ' ', apellidoP) LIKE ?", ["%{$nombre}%"]);
+                    });
+                });
+            })
+            ->when(isset($filtros['nota_min']), function ($query) use ($filtros) {
+                $query->where('notaFinal', '>=', $filtros['nota_min']);
+            })
+            ->when(isset($filtros['nota_max']), function ($query) use ($filtros) {
+                $query->where('notaFinal', '<=', $filtros['nota_max']);
+            })
+            ->where('estadoA', 1)
+            ->get()
+            ->map(function ($c) {
+                $curso = $c->inscripcion?->curso;
+                return [
+                    'id' => $c->id,
+                    'estudiante' => $c->estudiante?->usuario ? trim("{$c->estudiante->usuario->nombre1} {$c->estudiante->usuario->apellidoP}") : '—',
+                    'curso' => $curso ? [
+                        'materia' => ['nombre' => $curso->materia?->nombre],
+                        'periodoAcademico' => ['codigo' => $curso->periodoAcademico?->codigo],
+                    ] : null,
+                    'materia' => $c->materia?->nombre,
+                    'notaFinal' => $c->notaFinal,
+                    'estado' => $c->estado,
+                ];
+            });
     }
 
     public function exportarPdf($docente, array $filtros)

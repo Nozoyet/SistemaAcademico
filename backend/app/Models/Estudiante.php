@@ -17,4 +17,5 @@ class Estudiante extends Model
     public function carrera()      { return $this->belongsTo(Carrera::class, 'idCarrera', 'id'); }
     public function inscripciones(){ return $this->hasMany(Inscripcion::class, 'idEstudiante', 'idUsuario'); }
     public function historial()    { return $this->hasMany(HistorialAcademico::class, 'idEstudiante', 'idUsuario'); }
+    public function usuario()      { return $this->belongsTo(Usuario::class, 'idUsuario', 'id'); }
 }

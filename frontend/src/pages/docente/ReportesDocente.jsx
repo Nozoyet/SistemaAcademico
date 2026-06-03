@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { docenteService } from "../../services/docenteService";
 import useAuthStore from "../../stores/useAuthStore";
 import ReportePreviewModal from "../../components/common/ReportePreviewModal";
+import FiltrosReportes from "../../components/common/FiltrosReportes";
 
 const C = {
   bg: "#f0f9ff", surface: "#ffffff", border: "#e0f2fe", borderMid: "#bae6fd",
@@ -15,36 +16,41 @@ export default function ReportesDocente() {
   const navigate = useNavigate();
   const { cursoId: paramCursoId } = useParams();
   const { user, logout } = useAuthStore();
-  const [cursos, setCursos] = useState([]);
-  const [cursoSeleccionado, setCursoSeleccionado] = useState(paramCursoId || "");
+  const [filtros, setFiltros] = useState({ periodo_id: "", materia_id: "", curso_id: paramCursoId || "" });
+  const [opciones, setOpciones] = useState({ periodos: [], materias: [], cursos: [] });
   const [reporte, setReporte] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [loadingCursos, setLoadingCursos] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
 
   useEffect(() => {
-    docenteService.obtenerCursos()
-      .then(r => {
-        const cursos = r.data || [];
-        setCursos(cursos);
-        if (!paramCursoId && cursos.length > 0) {
-          setCursoSeleccionado(cursos[0].id);
+    docenteService.obtenerFiltrosReportes()
+      .then(data => {
+        setOpciones(data);
+        if (paramCursoId) {
+          const curso = data.cursos.find(c => Number(c.id) === Number(paramCursoId));
+          if (curso) {
+            setFiltros({
+              periodo_id: String(curso.idPeriodoAcademico),
+              materia_id: String(curso.idMateria),
+              curso_id: String(curso.id),
+            });
+          }
         }
       })
-      .catch(err => setError("Error al cargar cursos"))
-      .finally(() => setLoadingCursos(false));
+      .catch(err => setError("Error al cargar filtros"));
   }, [paramCursoId]);
 
   useEffect(() => {
-    if (cursoSeleccionado) {
-      cargarReporte(cursoSeleccionado);
+    if (filtros.curso_id && opciones.cursos.length > 0) {
+      cargarReporte(filtros.curso_id);
+    } else if (!filtros.curso_id) {
+      setReporte(null);
     }
-  }, [cursoSeleccionado]);
+  }, [filtros.curso_id, opciones.cursos.length]);
 
   const cargarReporte = async (id) => {
-    if (!id) return;
     setLoading(true);
     setError("");
     try {
@@ -58,7 +64,7 @@ export default function ReportesDocente() {
     }
   };
 
-  const cursoActual = cursos.find(c => c.id == cursoSeleccionado);
+  const changeFiltros = (nuevos) => setFiltros(nuevos);
 
   const handleLogout = async () => {
     await logout();
@@ -95,18 +101,16 @@ export default function ReportesDocente() {
             </div>
           )}
 
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-end" }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: C.textSub, marginBottom: "0.5rem" }}>Selecciona un curso</label>
-              <select value={cursoSeleccionado} onChange={e => setCursoSeleccionado(e.target.value)}
-                style={{ width: "100%", padding: "0.65rem 0.85rem", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: "0.9rem", color: C.text, background: "white", cursor: "pointer" }}>
-                <option value="">-- Seleccionar curso --</option>
-                {cursos.map(c => (
-                  <option key={c.id} value={c.id}>{c.materia?.nombre} - Grupo {c.codigoGrupo} ({c.periodo?.codigo})</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <FiltrosReportes
+            campos={["periodo", "materia", "curso"]}
+            opciones={opciones}
+            filtros={filtros}
+            onChange={changeFiltros}
+            loading={loading}
+            color={C.accent}
+            titulo="Reporte de Curso"
+            descripcion="Selecciona un curso para ver sus calificaciones"
+          />
         </div>
 
         {loading && (
@@ -190,7 +194,7 @@ export default function ReportesDocente() {
           </div>
         )}
 
-        {!loading && !reporte && cursoSeleccionado && (
+        {!loading && !reporte && filtros.curso_id && (
           <div style={{ background: "white", borderRadius: 16, padding: "3rem 2rem", boxShadow: "0 2px 16px rgba(0,0,0,0.06)", textAlign: "center", color: C.textMuted }}>
             <i className="bi bi-inbox" style={{fontSize:40}}></i>
             <p style={{ fontWeight: 600 }}>No hay información disponible para este curso</p>
@@ -204,8 +208,8 @@ export default function ReportesDocente() {
         onConfirm={async () => {
           setShowModal(false);
           try {
-            if (modalType === "pdf") await docenteService.exportarPDF(cursoSeleccionado);
-            else await docenteService.exportarExcel(cursoSeleccionado);
+            if (modalType === "pdf") await docenteService.exportarPDF(filtros.curso_id);
+            else await docenteService.exportarExcel(filtros.curso_id);
           } catch (err) {
             setError("Error al descargar: " + (err.response?.data?.message || err.message));
           }

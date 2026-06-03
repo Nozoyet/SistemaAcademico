@@ -106,6 +106,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('reportes')->group(function
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/docente/reportes/filtros', [ReporteDocenteController::class, 'filtrosReportes']);
     Route::get('/docente/reportes/{tipo}/preview', [ReporteDocenteController::class, 'preview'])->where('tipo', 'periodo-academico|estudiantes|materias|cursos|calificaciones');
 
     Route::get('/docente/reportes/{tipo}/pdf', [ReporteDocenteController::class, 'exportarPdf'])->where('tipo', 'periodo-academico|estudiantes|materias|cursos|calificaciones');

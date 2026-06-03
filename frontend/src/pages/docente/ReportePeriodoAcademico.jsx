@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import useAuthStore from "../../stores/useAuthStore";
 import ReportePreviewModal from "../../components/common/ReportePreviewModal";
+import FiltrosReportes from "../../components/common/FiltrosReportes";
 
 const C = {
   color: "#0369a1", bg: "#f0f9ff", accent: "#e0f2fe",
@@ -13,7 +14,8 @@ const C = {
 export default function ReportePeriodoAcademico() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const [filtros, setFiltros] = useState({ periodo: "", estado: "", fecha_inicio: "", fecha_fin: "" });
+  const [filtros, setFiltros] = useState({ periodo_id: "", estado: "", fecha_inicio: "", fecha_fin: "" });
+  const [opciones, setOpciones] = useState({ periodos: [], materias: [], cursos: [] });
   const [preview, setPreview] = useState([]);
   const [loading, setLoading] = useState(false);
   const [generado, setGenerado] = useState(false);
@@ -21,7 +23,14 @@ export default function ReportePeriodoAcademico() {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
 
+  useEffect(() => {
+    api.get("/docente/reportes/filtros").then(r => {
+      if (r.data?.success) setOpciones(r.data.data);
+    }).catch(() => {});
+  }, []);
+
   const change = (e) => setFiltros({ ...filtros, [e.target.name]: e.target.value });
+  const changeFiltros = (nuevos) => setFiltros(nuevos);
 
   const generarPreview = async () => {
     try {
@@ -102,38 +111,19 @@ export default function ReportePeriodoAcademico() {
 
           {error && <div style={s.errorBox}><i className="bi bi-exclamation-triangle-fill"></i> {error}</div>}
 
-          <div style={s.filterSection}>
-            <div style={s.filterRow}>
-              <div style={s.filterGroup}>
-                <label style={s.filterLabel}>Periodo académico</label>
-                <input name="periodo" value={filtros.periodo} onChange={change} placeholder="Código de periodo" style={s.filterInput} />
-              </div>
-              <div style={s.filterGroup}>
-                <label style={s.filterLabel}>Estado</label>
-                <select name="estado" value={filtros.estado} onChange={change} style={s.filterInput}>
-                  <option value="">Todos</option>
-                  <option value="activo">Activo</option>
-                  <option value="finalizado">Finalizado</option>
-                </select>
-              </div>
-              <div style={s.filterGroup}>
-                <label style={s.filterLabel}>Fecha inicio</label>
-                <input type="date" name="fecha_inicio" value={filtros.fecha_inicio} onChange={change} style={s.filterInput} />
-              </div>
-              <div style={s.filterGroup}>
-                <label style={s.filterLabel}>Fecha fin</label>
-                <input type="date" name="fecha_fin" value={filtros.fecha_fin} onChange={change} style={s.filterInput} />
-              </div>
-            </div>
-            <div style={s.filterRow}>
-              <div style={{ ...s.filterGroup, maxWidth: 200 }}>
-                <label style={{ ...s.filterLabel, visibility: "hidden" }}>Buscar</label>
-                <button onClick={generarPreview} disabled={loading} style={s.searchBtn}>
-                  {loading ? "Generando..." : "Generar previsualización"}
-                </button>
-              </div>
-            </div>
-          </div>
+          <FiltrosReportes
+            campos={["periodo", "estado", "fecha"]}
+            opciones={opciones}
+            filtros={filtros}
+            onChange={changeFiltros}
+            onConsultar={generarPreview}
+            loading={loading}
+            color={C.color}
+            estadoOpciones={[
+              { value: "activo", label: "Activo" },
+              { value: "finalizado", label: "Finalizado" },
+            ]}
+          />
         </div>
 
         {generado && preview.length > 0 && (
@@ -224,12 +214,6 @@ const s = {
   heroTitle: { fontSize: "2rem", fontWeight: 700, color: "#0f172a", margin: "0 0 .6rem" },
   heroDesc: { color: "#64748b", lineHeight: 1.6, marginBottom: "1.5rem" },
   errorBox: { display: "flex", alignItems: "center", gap: 10, padding: ".85rem 1rem", background: "#fee2e2", border: "1px solid #fecaca", color: "#991b1b", borderRadius: 10, marginBottom: "1rem", fontSize: ".9rem" },
-  filterSection: { display: "flex", flexDirection: "column", gap: 16, padding: "1.5rem", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12 },
-  filterRow: { display: "flex", gap: 14, flexWrap: "wrap" },
-  filterGroup: { flex: 1, minWidth: 180 },
-  filterLabel: { display: "block", fontSize: ".82rem", fontWeight: 700, color: "#64748b", marginBottom: ".45rem" },
-  filterInput: { width: "100%", padding: ".65rem .8rem", border: "1.5px solid #e2e8f0", borderRadius: 10, fontSize: ".9rem", color: "#1e293b", background: "white", boxSizing: "border-box" },
-  searchBtn: { width: "100%", padding: ".65rem 1rem", background: "#0369a1", color: "white", border: "none", borderRadius: 10, fontWeight: 700, cursor: "pointer", fontSize: ".9rem" },
   resultsCard: { background: "white", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 16px rgba(0,0,0,.06)" },
   resultsHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "1rem" },
   resultsTitle: { fontSize: "1.25rem", fontWeight: 700, color: "#0f172a", margin: 0 },

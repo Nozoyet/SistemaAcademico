@@ -1,6 +1,11 @@
 import api from './api';
 
 export const docenteService = {
+  obtenerFiltrosReportes: async () => {
+    const res = await api.get('/docente/reportes/filtros');
+    return res.data.data;
+  },
+
   obtenerCursos: async () => {
     const res = await api.get('/docente/cursos');
     return res.data;

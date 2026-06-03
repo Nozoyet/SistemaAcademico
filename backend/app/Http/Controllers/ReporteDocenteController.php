@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Services\ReporteDocenteService;
+use App\Models\PeriodoAcademico;
+use App\Models\Materia;
+use App\Models\Curso;
 use Illuminate\Http\Request;
 
 class ReporteDocenteController extends Controller
@@ -20,6 +23,53 @@ class ReporteDocenteController extends Controller
     public function __construct(ReporteDocenteService $reporteService)
     {
         $this->reporteService = $reporteService;
+    }
+
+    public function filtrosReportes(Request $request)
+    {
+        $docente = $request->user();
+
+        $periodos = PeriodoAcademico::whereHas('cursos', function ($q) use ($docente) {
+            $q->where('idDocente', $docente->id)->where('estadoA', 1);
+        })
+        ->where('estadoA', 1)
+        ->select('id', 'codigo')
+        ->orderByDesc('codigo')
+        ->get();
+
+        $materias = Materia::whereHas('cursos', function ($q) use ($docente) {
+            $q->where('idDocente', $docente->id)->where('estadoA', 1);
+        })
+        ->where('estadoA', 1)
+        ->select('id', 'codigo', 'nombre', 'semestre')
+        ->orderBy('nombre')
+        ->get();
+
+        $cursos = Curso::with(['materia', 'periodoAcademico'])
+            ->where('idDocente', $docente->id)
+            ->where('estadoA', 1)
+            ->select('id', 'codigoGrupo', 'idMateria', 'idPeriodoAcademico')
+            ->orderBy('id')
+            ->get()
+            ->map(function ($c) {
+                return [
+                    'id' => $c->id,
+                    'codigoGrupo' => $c->codigoGrupo,
+                    'idMateria' => $c->idMateria,
+                    'idPeriodoAcademico' => $c->idPeriodoAcademico,
+                    'materia' => $c->materia?->nombre,
+                    'periodo' => $c->periodoAcademico?->codigo,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'periodos' => $periodos,
+                'materias' => $materias,
+                'cursos' => $cursos,
+            ]
+        ]);
     }
 
     public function preview(Request $request, $tipo)
@@ -40,6 +90,12 @@ class ReporteDocenteController extends Controller
             'fecha_inicio' => 'nullable|date',
             'fecha_fin' => 'nullable|date',
             'estado' => 'nullable|string',
+            'nombre' => 'nullable|string',
+            'carrera_id' => 'nullable|integer',
+            'semestre' => 'nullable|integer',
+            'turno' => 'nullable|string',
+            'nota_min' => 'nullable|numeric',
+            'nota_max' => 'nullable|numeric',
         ]);
 
         $data = $this->reporteService->generarPreview(

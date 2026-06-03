@@ -16,4 +16,6 @@ class Inscripcion extends Model
         return $this->belongsTo(Curso::class, 'idCurso', 'id')
                     ->with(['materia', 'docente', 'horarios']);
     }
+    public function estudiante()        { return $this->belongsTo(Estudiante::class, 'idEstudiante', 'idUsuario'); }
+    public function historialAcademico(){ return $this->hasOne(HistorialAcademico::class, 'idInscripcion', 'id'); }
 }
