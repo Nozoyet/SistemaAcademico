@@ -54,54 +54,55 @@ class DocenteController extends Controller
     }
 
     public function estudiantesPorCurso($cursoId)
-    {
-        $curso = Curso::with('materia')->where('id', $cursoId)->where('estadoA', 1)->first();
-        if (!$curso) {
-            return response()->json(['success' => false, 'message' => 'Curso no encontrado'], 404);
-        }
-
-        $inscripciones = Inscripcion::with([
-            'curso.materia',
-            'curso.docente',
-        ])
-            ->where('idCurso', $cursoId)
-            ->where('estadoA', 1)
-            ->where('estado', 'Activa')
-            ->get()
-            ->map(function ($ins) {
-                $est = Estudiante::with('carrera')->where('idUsuario', $ins->idEstudiante)->first();
-                $usuario = \App\Models\Usuario::find($ins->idEstudiante);
-
-                $historial = HistorialAcademico::where('idEstudiante', $ins->idEstudiante)
-                    ->where('idInscripcion', $ins->id)
-                    ->where('estadoA', 1)
-                    ->first();
-
-                return [
-                    'idInscripcion' => $ins->id,
-                    'idEstudiante'  => $ins->idEstudiante,
-                    'matricula'     => $est?->matricula,
-                    'nombre'        => $usuario ? trim("{$usuario->nombre1} {$usuario->apellidoP}") : '—',
-                    'email'         => $usuario?->email,
-                    'carrera'       => $est?->carrera?->nombre,
-                    'notaFinal'     => $historial?->notaFinal,
-                    'estadoNota'    => $historial?->estado,
-                    'fechaInscripcion' => $ins->fechaInscripcion,
-                ];
-            });
-
-        return response()->json([
-            'success' => true,
-            'curso'   => [
-                'id'          => $curso->id,
-                'codigoGrupo' => $curso->codigoGrupo,
-                'materia'     => $curso->materia?->nombre,
-                'cupoActual'  => $curso->cupoActual,
-                'cupoMaximo'  => $curso->cupoMaximo,
-            ],
-            'data' => $inscripciones,
-        ]);
+{
+    $curso = Curso::with('materia')->where('id', $cursoId)->where('estadoA', 1)->first();
+    if (!$curso) {
+        return response()->json(['success' => false, 'message' => 'Curso no encontrado'], 404);
     }
+
+    $inscripciones = Inscripcion::with([
+        'curso.materia',
+        'curso.docente',
+    ])
+        ->where('idCurso', $cursoId)
+        ->where('estadoA', 1)
+        // CORRECCIÓN: Ahora acepta tanto alumnos cursando como alumnos con notas ya guardadas
+        ->whereIn('estado', ['Activa', 'Completada']) 
+        ->get()
+        ->map(function ($ins) {
+            $est = Estudiante::with('carrera')->where('idUsuario', $ins->idEstudiante)->first();
+            $usuario = \App\Models\Usuario::find($ins->idEstudiante);
+
+            $historial = HistorialAcademico::where('idEstudiante', $ins->idEstudiante)
+                ->where('idInscripcion', $ins->id)
+                ->where('estadoA', 1)
+                ->first();
+
+            return [
+                'idInscripcion' => $ins->id,
+                'idEstudiante'  => $ins->idEstudiante,
+                'matricula'     => $est?->matricula,
+                'nombre'        => $usuario ? trim("{$usuario->nombre1} {$usuario->apellidoP}") : '—',
+                'email'         => $usuario?->email,
+                'carrera'       => $est?->carrera?->nombre,
+                'notaFinal'     => $historial?->notaFinal,
+                'estadoNota'    => $historial?->estado,
+                'fechaInscripcion' => $ins->fechaInscripcion,
+            ];
+        });
+
+    return response()->json([
+        'success' => true,
+        'curso'   => [
+            'id'          => $curso->id,
+            'codigoGrupo' => $curso->codigoGrupo,
+            'materia'     => $curso->materia?->nombre,
+            'cupoActual'  => $curso->cupoActual,
+            'cupoMaximo'  => $curso->cupoMaximo,
+        ],
+        'data' => $inscripciones,
+    ]);
+}
 
     public function guardarCalificaciones(Request $request, $cursoId)
     {
