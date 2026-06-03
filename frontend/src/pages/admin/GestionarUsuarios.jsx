@@ -118,7 +118,7 @@ export default function GestionUsuarios() {
             <path d="M12 34L24 14L36 34H12Z" stroke={ADMIN_CONFIG.color} strokeWidth="2.2" strokeLinejoin="round" fill="none" />
             <circle cx="24" cy="24" r="3.5" fill={ADMIN_CONFIG.color} fillOpacity=".7" />
           </svg>
-          <span style={{ ...styles.headerTitle, color: ADMIN_CONFIG.color }}>Gestion Usuarios</span>
+          <span style={{ ...styles.headerTitle, color: ADMIN_CONFIG.color }}>Gestion Cursos</span>
         </div>
       </header>
 
@@ -240,13 +240,9 @@ export default function GestionUsuarios() {
         {/* Tabla */}
         <div style={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, overflow: "hidden" }}>
           {cargando ? (
-            <div style={{ padding: 60, textAlign: "center", color: "#94A3B8" }}>
-              <p style={{ margin: 0, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}>
-                  <circle cx="12" cy="12" r="10" strokeDasharray="31.4 31.4" strokeLinecap="round" />
-                </svg>
-                Cargando usuarios...
-              </p>
+            <div style={{ textAlign: "center", padding: 40, color: "#94A3B8" }}>
+              <div style={{ fontSize: 36, marginBottom: 12, color: "#7c3aed" }}><i className="bi bi-hourglass-split spin"></i></div>
+              <p style={{ margin: 0 }}>Cargando usuarios...</p>
             </div>
           ) : filtrados.length === 0 ? (
             <div style={{ padding: 60, textAlign: "center" }}>
@@ -368,7 +364,7 @@ export default function GestionUsuarios() {
         </div>
       )}
 
-      <style>{`@keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } } @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }`}</style>
+      <style>{`@keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } } @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } } .spin { display:inline-block; animation:spin 1s linear infinite; }`}</style>
     </div>
   );
 }

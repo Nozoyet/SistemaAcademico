@@ -3,92 +3,109 @@ import { useNavigate } from "react-router-dom";
 import { getNotificaciones, marcarLeida, marcarTodasLeidas } from "../services/notificationService";
 import useAuthStore from "../stores/useAuthStore";
 
-const BookIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-  </svg>
-);
+const notificationSubject = {
+  _observers: [],
+  _state: { notifications: [], loading: true, error: null },
 
-const CheckCircleIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
+  subscribe(observer) {
+    this._observers.push(observer);
+    observer({ ...this._state });
+    return () => {
+      this._observers = this._observers.filter(fn => fn !== observer);
+    };
+  },
 
-const EditIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-  </svg>
-);
+  _notify() {
+    const snapshot = { ...this._state };
+    this._observers.forEach(fn => fn(snapshot));
+  },
+
+  async fetchAll() {
+    this._state = { ...this._state, loading: true, error: null };
+    this._notify();
+    try {
+      const res = await getNotificaciones();
+      this._state = { ...this._state, notifications: res.data.data, loading: false };
+    } catch {
+      this._state = { ...this._state, error: "Error al cargar notificaciones", loading: false };
+    }
+    this._notify();
+  },
+
+  async markOne(id) {
+    try {
+      await marcarLeida(id);
+      this._state = {
+        ...this._state,
+        notifications: this._state.notifications.map(n =>
+          n.id === id ? { ...n, estado: "Leida", leida: true } : n
+        ),
+      };
+      this._notify();
+    } catch { /* ignore */ }
+  },
+
+  async markAll() {
+    try {
+      await marcarTodasLeidas();
+      this._state = {
+        ...this._state,
+        notifications: this._state.notifications.map(n => ({ ...n, estado: "Leida", leida: true })),
+      };
+      this._notify();
+    } catch { /* ignore */ }
+  },
+};
+
+const ROL_CONFIG = {
+  Administrador: { color: "#7C3AED", bg: "#EDE9FE" },
+  Docente:       { color: "#0369A1", bg: "#E0F2FE" },
+  Estudiante:    { color: "#047857", bg: "#D1FAE5" },
+};
 
 const TIPO_CONFIG = {
   curso_asignado: {
-    icon: <BookIcon />,
+    icon: "ph ph-chalkboard-teacher",
     bg: "#e0f2fe",
     color: "#0369a1",
-    redirect: (user) => "/docente/cursos",
+    redirect: () => "/docente/cursos",
   },
   inscripcion_exitosa: {
-    icon: <CheckCircleIcon />,
+    icon: "ph ph-check-circle",
     bg: "#d1fae5",
     color: "#065f46",
-    redirect: (user) => "/estudiante/inscripciones",
+    redirect: () => "/estudiante/inscripciones",
   },
   calificacion_asignada: {
-    icon: <EditIcon />,
+    icon: "ph ph-note-pencil",
     bg: "#fef3c7",
     color: "#92400e",
-    redirect: (user) => "/estudiante/inscripciones",
+    redirect: () => "/estudiante/inscripciones",
   },
 };
 
 export default function Notificaciones() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const [notificaciones, setNotificaciones] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const config = ROL_CONFIG[user?.rol] || ROL_CONFIG.Estudiante;
+  const [state, setState] = useState(notificationSubject._state);
 
   useEffect(() => {
-    fetchNotificaciones();
+    const unsubscribe = notificationSubject.subscribe(setState);
+    notificationSubject.fetchAll();
+    return unsubscribe;
   }, []);
 
-  const fetchNotificaciones = async () => {
-    try {
-      setLoading(true);
-      const res = await getNotificaciones();
-      setNotificaciones(res.data.data);
-    } catch (err) {
-      setError("Error al cargar notificaciones");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleClick = async (notif) => {
-    if (!notif.leida) {
-      try {
-        await marcarLeida(notif.id);
-      } catch (_) {}
-    }
-    const config = TIPO_CONFIG[notif.tipo];
-    if (config) {
-      const ruta = typeof config.redirect === "function" ? config.redirect(user) : config.redirect;
+    if (!notif.leida) await notificationSubject.markOne(notif.id);
+    const cfg = TIPO_CONFIG[notif.tipo];
+    if (cfg) {
+      const ruta = typeof cfg.redirect === "function" ? cfg.redirect(user) : cfg.redirect;
       navigate(ruta);
     }
   };
 
-  const handleMarcarTodas = async () => {
-    try {
-      await marcarTodasLeidas();
-      setNotificaciones((prev) =>
-        prev.map((n) => ({ ...n, estado: "Leida", leida: true }))
-      );
-    } catch (_) {}
-  };
+  const handleMarcarTodas = () => notificationSubject.markAll();
 
   const handleVolver = () => {
     const rutas = {
@@ -99,55 +116,77 @@ export default function Notificaciones() {
     navigate(rutas[user?.rol] || "/login");
   };
 
+  const { notifications: notificaciones, loading, error } = state;
   const noLeidasCount = notificaciones.filter((n) => !n.leida).length;
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh", background: "#f8fafc" }}>
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Cargando...</span>
+      <div style={{ textAlign: "center", padding: 60, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#f8fafc" }}>
+        <style>{`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .spin {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+          }
+        `}</style>
+        <div style={{ fontSize: 36, marginBottom: 12, color: config.color }}>
+          <i className="bi bi-hourglass-split spin"></i>
         </div>
+        <p style={{ margin: 0 }}>Cargando notificaciones.</p>
       </div>
     );
   }
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "1rem 2rem",
-          background: "white",
-          borderBottom: "1px solid #e2e8f0",
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
-            <rect width="48" height="48" rx="10" fill="#7c3aed" fillOpacity=".12" />
-            <path d="M12 34L24 14L36 34H12Z" stroke="#7c3aed" strokeWidth="2.2" strokeLinejoin="round" fill="none" />
-            <circle cx="24" cy="24" r="3.5" fill="#7c3aed" fillOpacity=".7" />
-          </svg>
-          <span style={{ fontWeight: 700, fontSize: "1rem", color: "#0f172a" }}>Notificaciones</span>
-          {noLeidasCount > 0 && (
-            <span className="badge rounded-pill bg-danger" style={{ fontSize: "0.75rem" }}>
-              {noLeidasCount} sin leer
-            </span>
-          )}
-        </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          {noLeidasCount > 0 && (
-            <button className="btn btn-outline-secondary btn-sm" onClick={handleMarcarTodas}>
-              Marcar todas como leídas
-            </button>
-          )}
-          <button className="btn btn-outline-secondary btn-sm" onClick={handleVolver}>
+      <header style={styles.header}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={handleVolver}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+              padding: "0.45rem 1rem",
+              border: "none",
+              borderRadius: 8,
+              background: config.color,
+              color: "white",
+              fontSize: "0.84rem",
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.background = config.color === "#7C3AED" ? "#5b21b6" : config.color === "#0369A1" ? "#075985" : "#065f46" }}
+            onMouseOut={(e) => { e.currentTarget.style.background = config.color }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
             Volver
           </button>
+          {noLeidasCount > 0 && (
+            <button
+              onClick={handleMarcarTodas}
+              style={{
+                ...styles.actionBtn,
+                background: "#f8fafc",
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = "#e2e8f0" }}
+              onMouseOut={(e) => { e.currentTarget.style.background = "#f8fafc" }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Marcar todas
+            </button>
+          )}
+        </div>
+        <div style={styles.headerBrand}>
+          <i className="ph ph-student" style={{ fontSize: "32px", color: config.color }} />
+          <span style={{ ...styles.headerTitle, color: config.color }}>Sistema Académico</span>
         </div>
       </header>
 
@@ -172,7 +211,7 @@ export default function Notificaciones() {
         <div className="list-group">
           {notificaciones.map((notif) => {
             const tipoCfg = TIPO_CONFIG[notif.tipo] || {
-              icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>,
+              icon: "ph ph-bell",
               bg: "#f1f5f9", color: "#475569",
             };
 
@@ -183,7 +222,6 @@ export default function Notificaciones() {
                 className="list-group-item list-group-item-action d-flex gap-3 py-3 border-0"
                 style={{
                   background: notif.leida ? "#ffffff" : "#f8fafc",
-                  borderBottom: "1px solid #e2e8f0 !important",
                   borderRadius: 0,
                   opacity: notif.leida ? 0.75 : 1,
                   cursor: "pointer",
@@ -205,7 +243,7 @@ export default function Notificaciones() {
                     flexShrink: 0,
                   }}
                 >
-                  {tipoCfg.icon}
+                  <i className={tipoCfg.icon}></i>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
@@ -245,3 +283,32 @@ export default function Notificaciones() {
     </div>
   );
 }
+
+const styles = {
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "1rem 2rem",
+    background: "white",
+    borderBottom: "1px solid #e2e8f0",
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+  },
+  headerBrand: { display: "flex", alignItems: "center", gap: 10 },
+  headerTitle: { fontWeight: 700, fontSize: "1rem", letterSpacing: "-0.01em" },
+  actionBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "0.45rem 0.9rem",
+    border: "1.5px solid #e2e8f0",
+    borderRadius: 8,
+    fontSize: "0.82rem",
+    fontWeight: 500,
+    cursor: "pointer",
+    color: "#475569",
+    transition: "background .15s",
+  },
+};

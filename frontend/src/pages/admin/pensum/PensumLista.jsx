@@ -34,7 +34,13 @@ export default function PensumLista() {
     }
   };
 
-  if (loading) return <div style={styles.loader}>Cargando...</div>;
+  if (loading) return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#F8FAFC", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}.spin{display:inline-block;animation:spin 1s linear infinite}`}</style>
+      <div style={{ fontSize: 36, marginBottom: 12, color: "#7c3aed" }}><i className="bi bi-hourglass-split spin"></i></div>
+      <p style={{ margin: 0 }}>Cargando pensums...</p>
+    </div>
+  );
 
   return (
     <div style={styles.root}>
