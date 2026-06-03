@@ -4,6 +4,8 @@ import { docenteService } from "../../services/docenteService";
 import useAuthStore from "../../stores/useAuthStore";
 import FiltrosReportes from "../../components/common/FiltrosReportes";
 
+import Loading from "../../components/common/Loading";
+
 const C = {
   bg: "#f0f9ff", surface: "#ffffff", border: "#e0f2fe", borderMid: "#bae6fd",
   accent: "#0369a1", accentDim: "#e0f2fe", green: "#059669", greenDim: "#d1fae5",
@@ -247,12 +249,13 @@ export default function ReportesDocente() {
         </div>
 
         {/* Cargando */}
-        {loading && (
-          <div style={{ textAlign: "center", padding: 80, color: C.textMuted }}>
-            <i className="bi bi-hourglass-split" style={{ fontSize: 36, marginBottom: 16, display: "block" }}></i>
-            <p style={{ margin: 0, fontSize: "1.1rem" }}>Generando vista previa del reporte…</p>
-          </div>
-        )}
+       {loading && (
+  <Loading 
+    texto="Procesando listado de estudiantes…" 
+    color={C.accent} 
+    size={36} 
+  />
+)}
 
         {/* Tabla de Resultados + Métricas */}
         {reporte && !loading && (

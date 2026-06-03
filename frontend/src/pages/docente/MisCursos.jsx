@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { docenteService } from "../../services/docenteService";
 
+import Loading from "../../components/common/Loading";
+
 const C = {
   bg: "#f0f9ff", 
   surface: "#ffffff", 
@@ -248,11 +250,12 @@ export default function MisCursos() {
 
         {/* Estados de Carga y Mensajes */}
         {loading ? (
-          <div style={{ textAlign: "center", padding: 80, color: C.textMuted }}>
-            <i className="bi bi-hourglass-split" style={{ fontSize: 36, marginBottom: 16, display: "block" }}></i>
-            <p style={{ margin: 0, fontSize: "1rem" }}>Cargando asignaciones académicas…</p>
-          </div>
-        ) : error ? (
+  <Loading 
+    texto="Cargando asignaciones académicas…" 
+    color={C.accent || "#0284c7"} // Usa C.accent si tienes esa paleta en MisCursos, si no, usa el azul por defecto
+    size={36} 
+  />
+) : error ? (
           <div style={{ background: "#fee2e2", border: "1px solid #fecaca", borderRadius: 12, padding: "16px 20px", color: "#991b1b", fontSize: 14 }}>{error}</div>
         ) : filtrados.length === 0 ? (
           <div style={{ textAlign: "center", padding: 80, color: C.textMuted }}>

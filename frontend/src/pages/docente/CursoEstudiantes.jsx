@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { docenteService } from "../../services/docenteService";
 
+import Loading from "../../components/common/Loading";
+
 const C = {
   bg: "#f0f9ff", surface: "#ffffff", border: "#e0f2fe", borderMid: "#bae6fd",
   accent: "#0369a1", accentDim: "#e0f2fe", green: "#059669", greenDim: "#d1fae5",
@@ -252,11 +254,12 @@ export default function CursoEstudiantes() {
         )}
 
         {loading ? (
-          <div style={{ textAling: "center", padding: 80, color: C.textMuted }}>
-            <i className="bi bi-hourglass-split" style={{ fontSize: 36, marginBottom: 16, display: "block" }}></i>
-            <p style={{ margin: 0, fontSize: "1.1rem" }}>Cargando estudiantes asignados…</p>
-          </div>
-        ) : (
+  <Loading 
+    texto="Cargando estudiantes asignados…" 
+    color={C.accent} 
+    size={36} 
+  />
+) : (
           <>
             {/* Barra de progreso de calificaciones */}
             {estudiantes.length > 0 && (
