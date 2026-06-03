@@ -14,17 +14,17 @@ function NotaSlider({ value, onChange }) {
   const pct = num !== null ? Math.min(100, Math.max(0, num)) : 0;
   const color = num !== null ? (num >= 51 ? C.green : C.red) : C.textMuted;
   return (
-    <div style={{ position: "relative", width: 140 }}>
-      <div style={{ height: 6, background: C.grayDim, borderRadius: 999, marginBottom: 6, position: "relative", overflow: "hidden" }}>
+    <div style={{ position: "relative", width: 170 }}>
+      <div style={{ height: 7, background: C.grayDim, borderRadius: 999, marginBottom: 8, position: "relative", overflow: "hidden" }}>
         <div style={{ width: `${pct}%`, height: "100%", background: `linear-gradient(90deg, ${C.red}, ${C.amber} 51%, ${C.green})`, borderRadius: 999, transition: "width .15s ease" }} />
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input type="number" min="0" max="100" step="0.5"
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder="—"
-          style={{ width: 70, padding: "6px 8px", textAlign: "center", border: `2px solid ${color}`, borderRadius: 8, fontSize: 15, fontWeight: 700, color, outline: "none", background: color === C.textMuted ? "white" : color + "08" }} />
-        {num !== null ? <i className={`bi ${num >= 51 ? "bi-check-lg" : "bi-x-lg"}`} style={{ fontSize: 16, color, fontWeight: 700, minWidth: 36 }}></i> : <span style={{ minWidth: 36 }}></span>}
+          style={{ width: 85, padding: "8px 10px", textAlign: "center", border: `2px solid ${color}`, borderRadius: 8, fontSize: 17, fontWeight: 700, color, outline: "none", background: color === C.textMuted ? "white" : color + "05" }} />
+        {num !== null ? <i className={`bi ${num >= 51 ? "bi-check-lg" : "bi-x-lg"}`} style={{ fontSize: 20, color, fontWeight: 700, minWidth: 36 }}></i> : <span style={{ minWidth: 36 }}></span>}
       </div>
     </div>
   );
@@ -126,115 +126,259 @@ export default function CursoEstudiantes() {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
-      <header style={{ background: "white", borderBottom: `1px solid ${C.border}`, padding: "14px 28px", display: "flex", alignItems: "center", gap: 16, position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
-        <button onClick={() => navigate("/docente/cursos")} style={{ background: "none", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 5 }}><i className="bi bi-arrow-left"></i> Volver</button>
-        <div style={{ width: 1, height: 20, background: C.border }} />
-        <span style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{curso?.materia || "Curso"} — Grupo {curso?.codigoGrupo}</span>
+      <style>{`
+        .btn-volver {
+          background-color: ${C.accent};
+          border: 1.5px solid ${C.accent};
+          color: white;
+          cursor: pointer;
+          font-size: 0.9rem; /* Mantenido */
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 0.55rem 1.25rem;
+          border-radius: 8px;
+          transition: all 0.15s ease-in-out;
+        }
+        .btn-volver:hover {
+          background-color: #025a8b;
+          border-color: #025a8b;
+          transform: translateY(-1px);
+        }
+        .input-busqueda {
+          flex: 1;
+          min-width: 240px;
+          padding: 12px 16px;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 10px;
+          font-size: 15px; /* Aumentado */
+          outline: none;
+          color: ${C.text};
+          transition: border-color 0.15s;
+        }
+        .input-busqueda:focus {
+          border-color: ${C.accent};
+        }
+        .btn-guardar {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 24px;
+          border-radius: 10px;
+          border: none;
+          background: ${C.accent};
+          color: white;
+          font-size: 15px; /* Aumentado */
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+        .btn-guardar:hover:not(:disabled) {
+          background: #025a8b;
+          box-shadow: 0 2px 8px rgba(3, 105, 161, 0.25);
+        }
+      `}</style>
+
+      {/* Header */}
+      <header style={{ 
+        background: "white", 
+        borderBottom: "1px solid #e2e8f0", 
+        padding: "1.25rem 2.5rem", 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "space-between", 
+        position: "sticky", 
+        top: 0, 
+        zIndex: 10 
+      }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <button onClick={() => navigate("/docente/cursos")} className="btn-volver">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Volver
+          </button>
+        </div>
+        <span style={{ fontWeight: 700, fontSize: "1.2rem", letterSpacing: "-0.01em", color: C.text }}>
+          {curso?.materia || "Curso"} — Grupo {curso?.codigoGrupo} {/* Mantenido */}
+        </span>
       </header>
 
-      <main style={{ maxWidth: 900, margin: "0 auto", padding: "28px 20px" }}>
+      {/* Franja de Datos Estadísticos Uniforme */}
+      {!loading && (
+        <div style={{ 
+          width: "100%", 
+          background: "#ffffff", 
+          borderBottom: "1px solid #e2e8f0", 
+          display: "flex", 
+          justifyContent: "center", 
+          alignItems: "center", 
+          gap: "4rem", 
+          padding: "1.2rem 2rem", 
+          boxSizing: "border-box", 
+          flexWrap: "wrap" 
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: "0.95rem", color: "#64748b", fontWeight: 600 }}>Alumnos Inscritos</span>
+            <span style={{ fontSize: "1.15rem", color: C.accent, fontWeight: 700 }}>{estudiantes.length}</span>
+          </div>
+          <div style={{ width: 1, height: 24, background: "#dbe3ee" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: "0.95rem", color: "#64748b", fontWeight: 600 }}>Aprobados</span>
+            <span style={{ fontSize: "1.15rem", color: C.green, fontWeight: 700 }}>{aprobados}</span>
+          </div>
+          <div style={{ width: 1, height: 24, background: "#dbe3ee" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: "0.95rem", color: "#64748b", fontWeight: 600 }}>Reprobados</span>
+            <span style={{ fontSize: "1.15rem", color: C.red, fontWeight: 700 }}>{reprobados}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Contenido Principal */}
+      <main style={{ maxWidth: 820, margin: "0 auto", padding: "2rem 1.5rem 3rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        
+        {/* Alertas */}
         {error && (
-          <div style={{ background: C.redDim, border: `1px solid ${C.red}33`, borderRadius: 10, padding: "12px 16px", color: C.red, fontSize: 13, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-<i className="bi bi-exclamation-triangle-fill"></i> {error}
+          <div style={{ background: C.redDim, border: `1px solid ${C.red}33`, borderRadius: 12, padding: "14px 18px", color: C.red, fontSize: 15, display: "flex", alignItems: "center", gap: 10 }}>
+            <i className="bi bi-exclamation-triangle-fill" style={{ fontSize: 18 }}></i> {error}
           </div>
         )}
         {success && (
-          <div style={{ background: C.greenDim, border: `1px solid ${C.green}33`, borderRadius: 10, padding: "12px 16px", color: C.green, fontSize: 13, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-<i className="bi bi-check-circle-fill"></i> {success}
+          <div style={{ background: C.greenDim, border: `1px solid ${C.green}33`, borderRadius: 12, padding: "14px 18px", color: C.green, fontSize: 15, display: "flex", alignItems: "center", gap: 10 }}>
+            <i className="bi bi-check-circle-fill" style={{ fontSize: 18 }}></i> {success}
           </div>
         )}
 
         {loading ? (
-          <div style={{ textAlign: "center", padding: 60, color: C.textMuted }}>
-<i className="bi bi-hourglass-split" style={{ fontSize: 32, marginBottom: 12, display: "block" }}></i>
-            <p style={{ margin: 0 }}>Cargando estudiantes…</p>
+          <div style={{ textAling: "center", padding: 80, color: C.textMuted }}>
+            <i className="bi bi-hourglass-split" style={{ fontSize: 36, marginBottom: 16, display: "block" }}></i>
+            <p style={{ margin: 0, fontSize: "1.1rem" }}>Cargando estudiantes asignados…</p>
           </div>
         ) : (
           <>
-            {/* Stats visuales */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
-              {[
-                { label: "Inscritos", value: estudiantes.length, color: C.accent, bg: C.accentDim },
-                { label: "Aprobados", value: aprobados, color: C.green, bg: C.greenDim },
-                { label: "Reprobados", value: reprobados, color: C.red, bg: C.redDim },
-              ].map(s => (
-                <div key={s.label} style={{ background: s.bg, borderRadius: 12, padding: "14px 18px", border: `1px solid ${s.color}33` }}>
-                  <div style={{ fontSize: 26, fontWeight: 800, color: s.color, margin: "0 0 1px" }}>{s.value}</div>
-                  <div style={{ fontSize: 11, color: s.color, fontWeight: 600, opacity: 0.8 }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Barra de progreso general */}
+            {/* Barra de progreso de calificaciones */}
             {estudiantes.length > 0 && (
-              <div style={{ background: "white", border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 18px", marginBottom: 20 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, color: C.textMuted, fontWeight: 600 }}>Progreso de calificaciones</span>
-                  <span style={{ fontSize: 12, color: C.accent, fontWeight: 700 }}>{conNota}/{estudiantes.length}</span>
+              <div style={{ background: "white", border: "1.5px solid #e2e8f0", borderRadius: 16, padding: "20px 24px", boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                  <span style={{ fontSize: 14, color: C.textSub, fontWeight: 600 }}>Progreso del Curso</span>
+                  <span style={{ fontSize: 14, color: C.accent, fontWeight: 700 }}>{conNota} de {estudiantes.length} evaluados</span>
                 </div>
-                <div style={{ height: 10, background: C.grayDim, borderRadius: 999, overflow: "hidden", display: "flex" }}>
-                  {aprobados > 0 && <div style={{ width: `${(aprobados / estudiantes.length) * 100}%`, background: C.green, transition: "width .3s" }} title={`${aprobados} aprobados`} />}
-                  {reprobados > 0 && <div style={{ width: `${(reprobados / estudiantes.length) * 100}%`, background: C.red, transition: "width .3s" }} title={`${reprobados} reprobados`} />}
-                  {sinNota > 0 && <div style={{ width: `${(sinNota / estudiantes.length) * 100}%`, background: C.gray, transition: "width .3s" }} title={`${sinNota} sin nota`} />}
+                <div style={{ height: 12, background: C.grayDim, borderRadius: 999, overflow: "hidden", display: "flex" }}>
+                  {aprobados > 0 && <div style={{ width: `${(aprobados / estudiantes.length) * 100}%`, background: C.green, transition: "width .3s" }} />}
+                  {reprobados > 0 && <div style={{ width: `${(reprobados / estudiantes.length) * 100}%`, background: C.red, transition: "width .3s" }} />}
+                  {sinNota > 0 && <div style={{ width: `${(sinNota / estudiantes.length) * 100}%`, background: C.gray, transition: "width .3s" }} />}
                 </div>
-                <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
-                  <span style={{ fontSize: 10, color: C.green, fontWeight: 600 }}><i className="bi bi-circle-fill" style={{fontSize:6, marginRight:3, verticalAlign:"middle"}}></i> {aprobados} aprobados</span>
-                  <span style={{ fontSize: 10, color: C.red, fontWeight: 600 }}><i className="bi bi-circle-fill" style={{fontSize:6, marginRight:3, verticalAlign:"middle"}}></i> {reprobados} reprobados</span>
-                  <span style={{ fontSize: 10, color: C.textMuted, fontWeight: 600 }}><i className="bi bi-circle-fill" style={{fontSize:6, marginRight:3, verticalAlign:"middle"}}></i> {sinNota} sin nota</span>
+                <div style={{ display: "flex", gap: 18, marginTop: 12 }}>
+                  <span style={{ fontSize: 12, color: C.green, fontWeight: 600 }}><i className="bi bi-circle-fill" style={{ fontSize: 7, marginRight: 6, verticalAlign: "middle" }}></i> {aprobados} aprobados</span>
+                  <span style={{ fontSize: 12, color: C.red, fontWeight: 600 }}><i className="bi bi-circle-fill" style={{ fontSize: 7, marginRight: 6, verticalAlign: "middle" }}></i> {reprobados} reprobados</span>
+                  <span style={{ fontSize: 12, color: C.textMuted, fontWeight: 600 }}><i className="bi bi-circle-fill" style={{ fontSize: 7, marginRight: 6, verticalAlign: "middle" }}></i> {sinNota} pendientes</span>
                 </div>
               </div>
             )}
 
-            {/* Barra de acciones */}
-            <div style={{ background: "white", border: `1px solid ${C.border}`, borderRadius: 14, padding: "14px 18px", marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-              <i className="bi bi-search" style={{ color: C.textMuted, fontSize: 14 }}></i>
-              <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar estudiante por nombre o matrícula…"
-                style={{ flex: 1, minWidth: 180, padding: "8px 12px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13, outline: "none", color: C.text }} />
-              <div style={{ width: 1, height: 24, background: C.border }} />
-              <button onClick={guardarTodas} disabled={saving}
-                style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 20px", borderRadius: 10, border: "none", background: C.accent, color: "white", fontSize: 13, fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}>
-                {saving ? "Guardando…" : <><i className="bi bi-floppy-fill" style={{fontSize:14}}></i> Guardar calificaciones</>}
+            {/* Barra de herramientas y filtros */}
+            <div style={{ 
+              background: "white", 
+              border: "1px solid #e2e8f0", 
+              borderRadius: 16, 
+              padding: "16px 22px", 
+              display: "flex", 
+              gap: 16, 
+              flexWrap: "wrap", 
+              alignItems: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.02)"
+            }}>
+              <i className="bi bi-search" style={{ color: C.textMuted, fontSize: 16 }}></i>
+              <input 
+                value={busqueda} 
+                onChange={e => setBusqueda(e.target.value)} 
+                placeholder="Buscar estudiante por nombre o matrícula…"
+                className="input-busqueda" 
+              />
+              <div style={{ width: 1, height: 32, background: "#e2e8f0" }} />
+              <button 
+                onClick={guardarTodas} 
+                disabled={saving}
+                className="btn-guardar"
+                style={{
+                  opacity: saving ? 0.7 : 1,
+                  cursor: saving ? "not-allowed" : "pointer"
+                }}
+              >
+                {saving ? "Guardando…" : <><i className="bi bi-floppy-fill"></i> Guardar calificaciones</>}
               </button>
             </div>
 
+            {/* Ayuda Textual para el Usuario Principiante */}
+            <div style={{ 
+              background: "#f8fafc", 
+              border: "1px dashed #cbd5e1", 
+              borderRadius: 12, 
+              padding: "14px 18px", 
+              display: "flex", 
+              alignItems: "flex-start", 
+              gap: 12 
+            }}>
+              <i className="bi bi-info-circle-fill" style={{ color: C.accent, fontSize: 18, marginTop: 2 }}></i>
+              <div style={{ fontSize: 14, color: C.textSub, lineHeight: "1.5" }}>
+                <strong>Instrucciones de llenado:</strong> Use el campo numérico para asignar la nota de cada estudiante (rango de <strong>0 a 100</strong>). Los estudiantes con <strong>51 puntos o más</strong> se considerarán aprobados de manera automática. No olvide presionar el botón azul <strong>"Guardar calificaciones"</strong> arriba para registrar los cambios en el sistema.
+              </div>
+            </div>
+
+            {/* Listado de Estudiantes */}
             {filtrados.length === 0 ? (
-              <div style={{ textAlign: "center", padding: 60, color: C.textMuted }}>
-                <i className="bi bi-inbox" style={{fontSize:40}}></i>
-                <p style={{ margin: "10px 0 0", fontWeight: 600 }}>No hay estudiantes inscritos en este curso</p>
+              <div style={{ textAlign: "center", padding: 80, color: C.textMuted }}>
+                <i className="bi bi-inbox" style={{ fontSize: 48, display: "block", marginBottom: 14 }}></i>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: "1.1rem" }}>No se encontraron registros coincidentes</p>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {filtrados.map((est, idx) => {
                   const nota = notas[est.idInscripcion];
                   const notaNum = nota !== undefined && nota !== "" ? Number(nota) : null;
                   const estado = est.estadoNota || (notaNum !== null ? (notaNum >= 51 ? "Aprobado" : "Reprobado") : null);
-                  const rowBg = idx % 2 === 0 ? "#f8fafc" : "white";
-                  const borderColor = notaNum !== null ? (notaNum >= 51 ? C.green : C.red) : C.border;
+                  const borderColor = notaNum !== null ? (notaNum >= 51 ? C.green : C.red) : "#e2e8f0";
+                  
                   return (
-                    <div key={est.idInscripcion} style={{ background: "white", border: `1.5px solid ${borderColor}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 6px rgba(0,0,0,0.04)", transition: "border-color .15s" }}>
-                      <div style={{ height: 3, background: notaNum !== null ? (notaNum >= 51 ? C.green : C.red) : C.grayDim }} />
-                      <div style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-                        <div style={{ width: 40, height: 40, borderRadius: 10, background: C.accentDim, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          <span style={{ fontSize: 16, fontWeight: 800, color: C.accent }}>{idx + 1}</span>
+                    <div key={est.idInscripcion} style={{ 
+                      background: "white", 
+                      border: `1.5px solid ${borderColor}`, 
+                      borderRadius: 16, 
+                      overflow: "hidden", 
+                      boxShadow: "0 3px 12px rgba(0,0,0,0.03)",
+                      transition: "border-color .15s" 
+                    }}>
+                      <div style={{ height: 4, background: notaNum !== null ? (notaNum >= 51 ? C.green : C.red) : "#f1f5f9" }} />
+                      <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
+                        
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: C.accentDim, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <span style={{ fontSize: 17, fontWeight: 800, color: C.accent }}>{idx + 1}</span>
                         </div>
-                        <div style={{ flex: 1, minWidth: 160 }}>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{est.nombre}</div>
-                          <div style={{ fontSize: 12, color: C.textMuted, display: "flex", gap: 10, marginTop: 2 }}>
-                            <span>{est.matricula || "—"}</span>
+
+                        <div style={{ flex: 1, minWidth: 220 }}>
+                          <div style={{ fontSize: 17, fontWeight: 700, color: C.text, letterSpacing: "-0.01em" }}>{est.nombre}</div>
+                          <div style={{ fontSize: 14, color: C.textMuted, display: "flex", gap: 14, marginTop: 5 }}>
+                            <span style={{ fontWeight: 500, color: C.textSub }}>{est.matricula || "—"}</span>
                             {est.email && <span>• {est.email}</span>}
                           </div>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", flexShrink: 0 }}>
+
+                        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", flexShrink: 0 }}>
                           <NotaSlider value={notas[est.idInscripcion] !== undefined ? notas[est.idInscripcion] : ""} onChange={v => handleNotaChange(est.idInscripcion, v)} />
+                          
                           {estado && (
                             <span style={{
                               background: estado === "Aprobado" ? C.greenDim : estado === "Reprobado" ? C.redDim : C.grayDim,
                               color: estado === "Aprobado" ? C.green : estado === "Reprobado" ? C.red : C.textMuted,
-                              borderRadius: 999, padding: "4px 12px", fontSize: 11, fontWeight: 600, whiteSpace: "nowrap",
+                              borderRadius: 999, padding: "6px 16px", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap",
                             }}>{estado}</span>
                           )}
                           {est.estadoNota && (
-                            <span style={{ fontSize: 10, color: C.textMuted, fontStyle: "italic" }}>guardado</span>
+                            <span style={{ fontSize: 12, color: C.textMuted, fontStyle: "italic", fontWeight: 500 }}>
+                              <i className="bi bi-cloud-check-fill" style={{ marginRight: 4 }}></i> Guardado
+                            </span>
                           )}
                         </div>
                       </div>
