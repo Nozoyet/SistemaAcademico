@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { docenteService } from "../../services/docenteService";
 import useAuthStore from "../../stores/useAuthStore";
 import FiltrosReportes from "../../components/common/FiltrosReportes";
-
+import ReportePreviewModal from "../../components/common/ReportePreviewModal";
 import Loading from "../../components/common/Loading";
 
 const C = {
@@ -22,6 +22,9 @@ export default function ReportesDocente() {
   const [reporte, setReporte] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState("");
 
   const debounceRef = useRef(null);
 
@@ -86,6 +89,25 @@ export default function ReportesDocente() {
     return p;
   };
 
+  const abrirModal = (type) => {
+    if (estudiantesFiltrados.length === 0) return;
+    setModalType(type);
+    setShowModal(true);
+  };
+
+  const confirmarDescarga = async () => {
+    setShowModal(false);
+    try {
+      if (modalType === "pdf") {
+        await docenteService.exportarPreviewPdf('calificaciones', exportFiltros());
+      } else {
+        await docenteService.exportarPreviewExcel('calificaciones', exportFiltros());
+      }
+    } catch (err) {
+      setError("Error al descargar: " + (err.response?.data?.message || err.message));
+    }
+  };
+
   const estudiantesFiltrados = reporte?.estudiantes?.map(e => ({
     ...e,
     notaFinal: e.notaFinal,
@@ -100,6 +122,32 @@ export default function ReportesDocente() {
       ? (estudiantesFiltrados.reduce((s, e) => s + (Number(e.notaFinal) || 0), 0) / estudiantesFiltrados.length)
       : 0,
   };
+
+  const previewData = estudiantesFiltrados.map((e, idx) => ({ ...e, _idx: idx + 1 }));
+
+  const columns = [
+    { key: "_idx", label: "#", width: "40px", align: "center" },
+    { key: "estudiante", label: "Estudiante" },
+    { key: "materia", label: "Materia", render: (r) => r.materia || "—" },
+    { key: "notaFinal", label: "Nota Final", align: "center", render: (r) => {
+      const n = r.notaFinal !== null && r.notaFinal !== undefined ? Number(r.notaFinal) : null;
+      return n !== null ? n.toFixed(1) : "—";
+    }},
+    { key: "estado", label: "Estado", align: "center" },
+  ];
+
+  const infoItems = [
+    { label: "Total Alumnos", value: estudiantesFiltrados.length },
+    { label: "Aprobados", value: resumenFiltrado.aprobados },
+    { label: "Reprobados", value: resumenFiltrado.reprobados },
+    { label: "Promedio General", value: resumenFiltrado.promedio ? resumenFiltrado.promedio.toFixed(1) : "—" },
+  ];
+
+  const stats = [
+    { label: "Total", value: estudiantesFiltrados.length, bg: "#e0f2fe", text: "#0369a1" },
+    { label: "Aprobados", value: resumenFiltrado.aprobados, bg: "#d1fae5", text: "#059669" },
+    { label: "Reprobados", value: resumenFiltrado.reprobados, bg: "#fee2e2", text: "#dc2626" },
+  ];
 
   const handleLogout = async () => {
     await logout();
@@ -371,17 +419,11 @@ export default function ReportesDocente() {
 
             {/* Botones de Descarga */}
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: "0.5rem" }}>
-              <button onClick={async () => {
-                try { await docenteService.exportarPreviewPdf('calificaciones', exportFiltros()); }
-                catch (err) { setError("Error al descargar PDF: " + (err.response?.data?.message || err.message)); }
-              }} className="btn-pdf">
+              <button onClick={() => abrirModal("pdf")} className="btn-pdf">
                 <i className="bi bi-file-earmark-pdf-fill"></i> Descargar PDF
               </button>
               
-              <button onClick={async () => {
-                try { await docenteService.exportarPreviewExcel('calificaciones', exportFiltros()); }
-                catch (err) { setError("Error al descargar Excel: " + (err.response?.data?.message || err.message)); }
-              }} className="btn-excel">
+              <button onClick={() => abrirModal("excel")} className="btn-excel">
                 <i className="bi bi-file-earmark-excel-fill"></i> Descargar Excel
               </button>
             </div>
@@ -403,6 +445,19 @@ export default function ReportesDocente() {
           </div>
         )}
       </main>
+
+      <ReportePreviewModal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={confirmarDescarga}
+        title="Reporte de Calificaciones"
+        tipo={modalType}
+        data={previewData}
+        columns={columns}
+        infoItems={infoItems}
+        stats={stats}
+        color={C.accent}
+      />
     </div>
   );
 }

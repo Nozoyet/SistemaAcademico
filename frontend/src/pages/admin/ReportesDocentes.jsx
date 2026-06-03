@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { reporteService } from '../../services/reporteService';
 import useAuthStore from '../../stores/useAuthStore';
 import { useNavigate } from 'react-router-dom';
@@ -27,6 +27,10 @@ export default function ReportesDocentes() {
 
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [nombreUsuario, setNombreUsuario] = useState('');
+
+  const debounceRef = useRef(null);
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -85,26 +89,27 @@ export default function ReportesDocentes() {
     }
   };
 
-  const buscar = async () => {
-    if (!carreraId) {
-      setError('Selecciona una carrera');
-      return;
-    }
-    if (!periodoId) {
-      setError('Selecciona un período');
-      return;
-    }
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      buscar();
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [carreraId, periodoId, cursoId, fechaInicio, fechaFin, nombre, nombreUsuario]);
 
+  const buscar = async () => {
     try {
       setLoading(true);
       setError('');
-      const result = await reporteService.obtenerReporteDocentes({
-        carrera_id: carreraId,
-        periodo_id: periodoId,
-        curso_id: cursoId || undefined,
-        fecha_inicio: fechaInicio || undefined,
-        fecha_fin: fechaFin || undefined,
-      });
+      const params = {};
+      if (carreraId) params.carrera_id = carreraId;
+      if (periodoId) params.periodo_id = periodoId;
+      if (cursoId) params.curso_id = cursoId;
+      if (fechaInicio) params.fecha_inicio = fechaInicio;
+      if (fechaFin) params.fecha_fin = fechaFin;
+      if (nombre) params.nombre = nombre;
+      if (nombreUsuario) params.nombreUsuario = nombreUsuario;
+      const result = await reporteService.obtenerReporteDocentes(params);
       setData(result);
       setGenerado(true);
     } catch (err) {
@@ -124,22 +129,19 @@ export default function ReportesDocentes() {
   const confirmarDescarga = async () => {
     setShowModal(false);
     try {
+      const exportParams = {
+        carrera_id: carreraId || undefined,
+        periodo_id: periodoId || undefined,
+        curso_id: cursoId || undefined,
+        fecha_inicio: fechaInicio || undefined,
+        fecha_fin: fechaFin || undefined,
+        nombre: nombre || undefined,
+        nombreUsuario: nombreUsuario || undefined,
+      };
       if (modalType === 'pdf') {
-        await reporteService.exportarPDFDocentes({
-          carrera_id: carreraId,
-          periodo_id: periodoId,
-          curso_id: cursoId || undefined,
-          fecha_inicio: fechaInicio || undefined,
-          fecha_fin: fechaFin || undefined,
-        });
+        await reporteService.exportarPDFDocentes(exportParams);
       } else {
-        await reporteService.exportarExcelDocentes({
-          carrera_id: carreraId,
-          periodo_id: periodoId,
-          curso_id: cursoId || undefined,
-          fecha_inicio: fechaInicio || undefined,
-          fecha_fin: fechaFin || undefined,
-        });
+        await reporteService.exportarExcelDocentes(exportParams);
       }
     } catch (err) {
       setError('Error al descargar: ' + (err.response?.data?.error || err.message));
@@ -153,6 +155,7 @@ export default function ReportesDocentes() {
 
   return (
     <div style={{ ...styles.root, background: ADMIN_CONFIG.bg }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <header style={styles.header}>
         <div style={styles.headerActions}>
           <button
@@ -242,6 +245,17 @@ export default function ReportesDocentes() {
 
             <div style={styles.filterRow}>
               <div style={styles.filterGroup}>
+                <label style={styles.filterLabel}>Nombre del Docente</label>
+                <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Buscar por nombre..." style={styles.filterSelect} />
+              </div>
+              <div style={styles.filterGroup}>
+                <label style={styles.filterLabel}>Nombre de Usuario</label>
+                <input type="text" value={nombreUsuario} onChange={(e) => setNombreUsuario(e.target.value)} placeholder="Buscar por usuario..." style={styles.filterSelect} />
+              </div>
+            </div>
+
+            <div style={styles.filterRow}>
+              <div style={styles.filterGroup}>
                 <label style={styles.filterLabel}>Fecha inicio</label>
                 <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} style={styles.filterSelect} />
               </div>
@@ -249,22 +263,15 @@ export default function ReportesDocentes() {
                 <label style={styles.filterLabel}>Fecha fin</label>
                 <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} style={styles.filterSelect} />
               </div>
-              <div style={styles.filterGroup}>
-                <label style={{ ...styles.filterLabel, visibility: 'hidden' }}>Buscar</label>
-                <button
-                  onClick={buscar}
-                  disabled={!carreraId || !periodoId || loading}
-                  style={{
-                    ...styles.searchBtn,
-                    opacity: !carreraId || !periodoId || loading ? 0.5 : 1,
-                    cursor: !carreraId || !periodoId || loading ? 'not-allowed' : 'pointer',
-                  }}
-                  onMouseOver={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#5b21b6' }}
-                  onMouseOut={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#7c3aed' }}
-                >
-                  {loading ? 'Buscando...' : 'Buscar'}
-                </button>
-              </div>
+              {loading && (
+                <div style={styles.filterGroup}>
+                  <label style={{ ...styles.filterLabel, visibility: 'hidden' }}>.</label>
+                  <div style={{ ...styles.searchBtn, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 0.7, cursor: 'default' }}>
+                    <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }}></span>
+                    Buscando...
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

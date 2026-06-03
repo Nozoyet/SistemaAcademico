@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { reporteService } from '../../services/reporteService';
 import useAuthStore from '../../stores/useAuthStore';
 import { useNavigate } from 'react-router-dom';
@@ -23,6 +23,8 @@ export default function Reportes() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [generado, setGenerado] = useState(false);
+
+  const debounceRef = useRef(null);
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -73,23 +75,27 @@ export default function Reportes() {
 
   const cargarMateriasPorCarrera = async (id, sem) => {
     try {
+      setLoading(true);
+      setError('');
       const data = await reporteService.obtenerMateriasPorCarrera(id, sem || undefined);
       setMaterias(data);
       setGenerado(true);
-      setError('');
     } catch (err) {
       setError('Error al generar reporte: ' + (err.response?.data?.error || err.message));
       setGenerado(false);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const generarReporte = async () => {
-    if (!carreraSeleccionada) {
-      setError('Por favor selecciona una carrera');
-      return;
-    }
-    await cargarMateriasPorCarrera(carreraSeleccionada, semestre);
-  };
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!carreraSeleccionada) return;
+    debounceRef.current = setTimeout(() => {
+      cargarMateriasPorCarrera(carreraSeleccionada, semestre);
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [carreraSeleccionada, semestre]);
 
   // Modal handlers
   const abrirModal = (type) => {
@@ -118,6 +124,7 @@ export default function Reportes() {
 
   return (
     <div style={{ ...styles.root, background: ADMIN_CONFIG.bg }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <header style={styles.header}>
         <div style={styles.headerActions}>
           <button
@@ -226,22 +233,15 @@ export default function Reportes() {
                 </select>
               </div>
 
-              <div style={styles.filterGroup}>
-                <label style={{ ...styles.filterLabel, visibility: 'hidden' }}>Actualizar</label>
-                <button
-                  onClick={generarReporte}
-                  disabled={!carreraSeleccionada || loading}
-                  style={{
-                    ...styles.searchBtn,
-                    opacity: !carreraSeleccionada || loading ? 0.5 : 1,
-                    cursor: !carreraSeleccionada || loading ? 'not-allowed' : 'pointer',
-                  }}
-                  onMouseOver={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#5b21b6' }}
-                  onMouseOut={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#7c3aed' }}
-                >
-                  {loading ? 'Cargando...' : 'Actualizar'}
-                </button>
-              </div>
+              {loading && (
+                <div style={styles.filterGroup}>
+                  <label style={{ ...styles.filterLabel, visibility: 'hidden' }}>.</label>
+                  <div style={{ ...styles.searchBtn, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 0.7, cursor: 'default' }}>
+                    <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }}></span>
+                    Cargando...
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
