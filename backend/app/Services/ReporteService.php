@@ -206,6 +206,8 @@ class ReporteService {
             $cursoId = $request->query('curso_id');
             $fechaInicio = $request->query('fecha_inicio');
             $fechaFin = $request->query('fecha_fin');
+            $nombre = $request->query('nombre');
+            $nombreUsuario = $request->query('nombreUsuario');
 
             $query = DB::table('inscripcion')
                 ->join('estudiante', 'inscripcion.idEstudiante', '=', 'estudiante.idUsuario')
@@ -238,6 +240,19 @@ class ReporteService {
                 $query->whereDate('inscripcion.fechaInscripcion', '<=', $fechaFin);
             }
 
+            if ($nombre) {
+                $query->where(function ($q) use ($nombre) {
+                    $q->where('usuario.nombre1', 'LIKE', "%{$nombre}%")
+                      ->orWhere('usuario.nombre2', 'LIKE', "%{$nombre}%")
+                      ->orWhere('usuario.apellidoP', 'LIKE', "%{$nombre}%")
+                      ->orWhere('usuario.apellidoM', 'LIKE', "%{$nombre}%");
+                });
+            }
+
+            if ($nombreUsuario) {
+                $query->where('usuario.nombreUsuario', 'LIKE', "%{$nombreUsuario}%");
+            }
+
             return $query->select(
                 'inscripcion.id',
                 'estudiante.matricula',
@@ -263,6 +278,8 @@ class ReporteService {
             $cursoId = $request->query('curso_id');
             $fechaInicio = $request->query('fecha_inicio');
             $fechaFin = $request->query('fecha_fin');
+            $nombre = $request->query('nombre');
+            $nombreUsuario = $request->query('nombreUsuario');
 
             $query = DB::table('curso')
                 ->join('usuario', 'curso.idDocente', '=', 'usuario.id')
@@ -293,6 +310,19 @@ class ReporteService {
 
             if ($fechaFin) {
                 $query->whereDate('curso.fechaHoraA', '<=', $fechaFin);
+            }
+
+            if ($nombre) {
+                $query->where(function ($q) use ($nombre) {
+                    $q->where('usuario.nombre1', 'LIKE', "%{$nombre}%")
+                      ->orWhere('usuario.nombre2', 'LIKE', "%{$nombre}%")
+                      ->orWhere('usuario.apellidoP', 'LIKE', "%{$nombre}%")
+                      ->orWhere('usuario.apellidoM', 'LIKE', "%{$nombre}%");
+                });
+            }
+
+            if ($nombreUsuario) {
+                $query->where('usuario.nombreUsuario', 'LIKE', "%{$nombreUsuario}%");
             }
 
             $results = $query->select(
