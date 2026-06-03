@@ -26,24 +26,29 @@ export const docenteService = {
     return res.data;
   },
 
-  exportarPDF: async (cursoId) => {
-    const res = await api.get(`/docente/reportes/exportar-pdf/${cursoId}`, { responseType: 'blob' });
+  reportePreview: async (tipo, filtros = {}) => {
+    const res = await api.get(`/docente/reportes/${tipo}/preview`, { params: filtros });
+    return res.data;
+  },
+
+  exportarPreviewPdf: async (tipo, filtros = {}) => {
+    const res = await api.get(`/docente/reportes/${tipo}/pdf`, { params: filtros, responseType: 'blob' });
     const url = window.URL.createObjectURL(new Blob([res.data]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `reporte-curso-${cursoId}.pdf`);
+    link.setAttribute('download', `reporte-${tipo}.pdf`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
   },
 
-  exportarExcel: async (cursoId) => {
-    const res = await api.get(`/docente/reportes/exportar-excel/${cursoId}`, { responseType: 'blob' });
+  exportarPreviewExcel: async (tipo, filtros = {}) => {
+    const res = await api.get(`/docente/reportes/${tipo}/excel`, { params: filtros, responseType: 'blob' });
     const url = window.URL.createObjectURL(new Blob([res.data]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `reporte-curso-${cursoId}.xlsx`);
+    link.setAttribute('download', `reporte-${tipo}.xlsx`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

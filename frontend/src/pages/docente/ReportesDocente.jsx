@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { docenteService } from "../../services/docenteService";
 import useAuthStore from "../../stores/useAuthStore";
-import ReportePreviewModal from "../../components/common/ReportePreviewModal";
 import FiltrosReportes from "../../components/common/FiltrosReportes";
 
 const C = {
@@ -21,8 +20,27 @@ export default function ReportesDocente() {
   const [reporte, setReporte] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState("");
+
+  const debounceRef = useRef(null);
+
+  const cargarPreview = async (f) => {
+    setLoading(true);
+    setError("");
+    try {
+      const payload = {};
+      if (f.periodo_id) payload.periodo_id = f.periodo_id;
+      if (f.materia_id) payload.materia_id = f.materia_id;
+      if (f.curso_id) payload.curso_id = f.curso_id;
+      if (f.condicion) payload.estado = f.condicion;
+      const r = await docenteService.reportePreview('calificaciones', payload);
+      setReporte({ estudiantes: r.data });
+    } catch (err) {
+      setError(err.response?.data?.message || "Error al generar reporte");
+      setReporte(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     docenteService.obtenerFiltrosReportes()
@@ -43,32 +61,33 @@ export default function ReportesDocente() {
   }, [paramCursoId]);
 
   useEffect(() => {
-    if (filtros.curso_id && opciones.cursos.length > 0) {
-      cargarReporte(filtros.curso_id);
-    } else if (!filtros.curso_id) {
+    if (opciones.cursos.length === 0) return;
+    const tieneFiltro = filtros.periodo_id || filtros.materia_id || filtros.curso_id;
+    if (!tieneFiltro) {
       setReporte(null);
+      return;
     }
-  }, [filtros.curso_id, opciones.cursos.length]);
-
-  const cargarReporte = async (id) => {
-    setLoading(true);
-    setError("");
-    try {
-      const r = await docenteService.obtenerReporteCurso(id);
-      setReporte(r.data);
-    } catch (err) {
-      setError(err.response?.data?.message || "Error al generar reporte");
-      setReporte(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => cargarPreview(filtros), 350);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [filtros, opciones.cursos.length]);
 
   const changeFiltros = (nuevos) => setFiltros(nuevos);
 
-  const estudiantesFiltrados = reporte?.estudiantes?.filter(e =>
-    !filtros.condicion || e.estado === filtros.condicion
-  ) || [];
+  const exportFiltros = () => {
+    const p = {};
+    if (filtros.periodo_id) p.periodo_id = filtros.periodo_id;
+    if (filtros.materia_id) p.materia_id = filtros.materia_id;
+    if (filtros.curso_id) p.curso_id = filtros.curso_id;
+    if (filtros.condicion) p.estado = filtros.condicion;
+    return p;
+  };
+
+  const estudiantesFiltrados = reporte?.estudiantes?.map(e => ({
+    ...e,
+    notaFinal: e.notaFinal,
+    estado: e.estado,
+  })) || [];
 
   const resumenFiltrado = {
     aprobados: estudiantesFiltrados.filter(e => e.estado === "Aprobado").length,
@@ -98,14 +117,14 @@ export default function ReportesDocente() {
       <main style={{ maxWidth: 1000, margin: "0 auto", padding: "2rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
         <div style={{ background: "white", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 16px rgba(0,0,0,0.06)", borderTop: `4px solid ${C.accent}` }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0.35rem 0.85rem", borderRadius: 999, fontSize: "0.82rem", fontWeight: 600, background: C.accentDim, color: C.accent, marginBottom: "1.25rem" }}>
-            <i className="bi bi-bar-chart-fill" style={{fontSize:14}}></i> Reporte de Curso
+            <i className="bi bi-bar-chart-fill" style={{fontSize:14}}></i> Calificaciones
           </div>
 
           <h1 style={{ fontSize: "1.75rem", fontWeight: 700, color: C.text, margin: "0 0 0.6rem", letterSpacing: "-0.02em" }}>
-            Reportes por <span style={{ color: C.accent }}>Curso</span>
+            Reporte de <span style={{ color: C.accent }}>Calificaciones</span>
           </h1>
           <p style={{ fontSize: "0.92rem", color: C.textSub, margin: "0 0 1.75rem", lineHeight: 1.65 }}>
-            Consulta las calificaciones de tus cursos. Visualiza, filtra y exporta a PDF o Excel.
+            Consulta las calificaciones de tus cursos. Selecciona cualquier filtro para ver resultados al instante.
           </p>
 
           {error && (
@@ -121,8 +140,8 @@ export default function ReportesDocente() {
             onChange={changeFiltros}
             loading={loading}
             color={C.accent}
-            titulo="Reporte de Curso"
-            descripcion="Selecciona un curso para ver sus calificaciones"
+            titulo="Calificaciones"
+            descripcion="Selecciona filtros para ver las calificaciones al instante"
             condicionOpciones={[
               { value: "Aprobado", label: "Aprobado" },
               { value: "Reprobado", label: "Reprobado" },
@@ -140,7 +159,7 @@ export default function ReportesDocente() {
         {reporte && !loading && (
           <div style={{ background: "white", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: `1px solid ${C.border}` }}>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: C.text, margin: 0 }}>Calificaciones del curso</h2>
+              <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: C.text, margin: 0 }}>Calificaciones</h2>
               <div style={{ display: "flex", gap: 12 }}>
                 {[["aprobados", C.green], ["reprobados", C.red], ["cursando", C.amber]].map(([k, col]) => (
                   <div key={k} style={{ textAlign: "center", padding: "0.4rem 0.8rem", background: col + "12", borderRadius: 8, border: `1px solid ${col}33` }}>
@@ -153,13 +172,7 @@ export default function ReportesDocente() {
 
             <div style={{ display: "flex", gap: 10, fontSize: "0.9rem", color: C.textSub, padding: "1rem 0", flexWrap: "wrap" }}>
               <div style={{ background: C.grayDim, padding: "0.7rem 1rem", borderRadius: 10, border: `1px solid ${C.border}` }}>
-                <strong>Materia:</strong> {reporte.curso?.materia}
-              </div>
-              <div style={{ background: C.grayDim, padding: "0.7rem 1rem", borderRadius: 10, border: `1px solid ${C.border}` }}>
-                <strong>Grupo:</strong> {reporte.curso?.codigoGrupo}
-              </div>
-              <div style={{ background: C.grayDim, padding: "0.7rem 1rem", borderRadius: 10, border: `1px solid ${C.border}` }}>
-                <strong>Periodo:</strong> {reporte.curso?.periodo}
+                <strong>Registros:</strong> {estudiantesFiltrados.length}
               </div>
               <div style={{ background: C.grayDim, padding: "0.7rem 1rem", borderRadius: 10, border: `1px solid ${C.border}` }}>
                 <strong>Promedio:</strong> {resumenFiltrado.promedio ? resumenFiltrado.promedio.toFixed(1) : "—"}
@@ -171,8 +184,8 @@ export default function ReportesDocente() {
                 <thead>
                   <tr style={{ background: C.grayDim }}>
                     <th style={{ padding: "0.85rem 1rem", textAlign: "left", fontSize: "0.82rem", fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: `2px solid ${C.border}` }}>#</th>
-                    <th style={{ padding: "0.85rem 1rem", textAlign: "left", fontSize: "0.82rem", fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: `2px solid ${C.border}` }}>Matrícula</th>
                     <th style={{ padding: "0.85rem 1rem", textAlign: "left", fontSize: "0.82rem", fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: `2px solid ${C.border}` }}>Estudiante</th>
+                    <th style={{ padding: "0.85rem 1rem", textAlign: "left", fontSize: "0.82rem", fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: `2px solid ${C.border}` }}>Materia</th>
                     <th style={{ padding: "0.85rem 1rem", textAlign: "center", fontSize: "0.82rem", fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: `2px solid ${C.border}` }}>Nota</th>
                     <th style={{ padding: "0.85rem 1rem", textAlign: "center", fontSize: "0.82rem", fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: `2px solid ${C.border}` }}>Estado</th>
                   </tr>
@@ -183,8 +196,8 @@ export default function ReportesDocente() {
                     return (
                       <tr key={idx} style={{ borderBottom: `1px solid ${C.border}`, background: idx % 2 === 0 ? "#f8fafc" : "white" }}>
                         <td style={{ padding: "0.9rem 1rem", fontSize: "0.9rem", color: C.textMuted }}>{idx + 1}</td>
-                        <td style={{ padding: "0.9rem 1rem", fontSize: "0.9rem", color: C.textSub }}>{e.matricula || "—"}</td>
                         <td style={{ padding: "0.9rem 1rem", fontSize: "0.9rem", color: C.text, fontWeight: 500 }}>{e.estudiante}</td>
+                        <td style={{ padding: "0.9rem 1rem", fontSize: "0.9rem", color: C.textSub }}>{e.materia || e.curso?.materia?.nombre || "—"}</td>
                         <td style={{ padding: "0.9rem 1rem", fontSize: "0.9rem", textAlign: "center", color: e.notaFinal !== null ? C.text : C.textMuted, fontWeight: e.notaFinal !== null ? 700 : 400 }}>
                           {e.notaFinal !== null ? Number(e.notaFinal).toFixed(1) : "—"}
                         </td>
@@ -199,11 +212,17 @@ export default function ReportesDocente() {
             </div>
 
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => { setModalType("pdf"); setShowModal(true); }}
+              <button onClick={async () => {
+                try { await docenteService.exportarPreviewPdf('calificaciones', exportFiltros()); }
+                catch (err) { setError("Error al descargar PDF: " + (err.response?.data?.message || err.message)); }
+              }}
                 style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.65rem 1.25rem", background: "#dc2626", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
                 <i className="bi bi-file-earmark-pdf-fill"></i> Descargar PDF
               </button>
-              <button onClick={() => { setModalType("excel"); setShowModal(true); }}
+              <button onClick={async () => {
+                try { await docenteService.exportarPreviewExcel('calificaciones', exportFiltros()); }
+                catch (err) { setError("Error al descargar Excel: " + (err.response?.data?.message || err.message)); }
+              }}
                 style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.65rem 1.25rem", background: "#16a34a", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
                 <i className="bi bi-file-earmark-excel-fill"></i> Descargar Excel
               </button>
@@ -211,54 +230,22 @@ export default function ReportesDocente() {
           </div>
         )}
 
-        {!loading && !reporte && filtros.curso_id && (
+        {!loading && !reporte && (filtros.periodo_id || filtros.materia_id || filtros.curso_id) && (
           <div style={{ background: "white", borderRadius: 16, padding: "3rem 2rem", boxShadow: "0 2px 16px rgba(0,0,0,0.06)", textAlign: "center", color: C.textMuted }}>
             <i className="bi bi-inbox" style={{fontSize:40}}></i>
-            <p style={{ fontWeight: 600 }}>No hay información disponible para este curso</p>
+            <p style={{ fontWeight: 600 }}>No hay registros para los filtros seleccionados</p>
+          </div>
+        )}
+
+        {!loading && !reporte && !filtros.periodo_id && !filtros.materia_id && !filtros.curso_id && (
+          <div style={{ background: "white", borderRadius: 16, padding: "3rem 2rem", boxShadow: "0 2px 16px rgba(0,0,0,0.06)", textAlign: "center", color: C.textMuted }}>
+            <i className="bi bi-search" style={{fontSize:40}}></i>
+            <p style={{ fontWeight: 600 }}>Selecciona un filtro para ver las calificaciones</p>
           </div>
         )}
       </main>
 
-      <ReportePreviewModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        onConfirm={async () => {
-          setShowModal(false);
-          try {
-            if (modalType === "pdf") await docenteService.exportarPDF(filtros.curso_id);
-            else await docenteService.exportarExcel(filtros.curso_id);
-          } catch (err) {
-            setError("Error al descargar: " + (err.response?.data?.message || err.message));
-          }
-        }}
-        title="Reporte de Calificaciones"
-        tipo={modalType}
-        color="#0369a1"
-        data={estudiantesFiltrados}
-        columns={[
-          { key: "matricula", label: "Matrícula", width: "18%" },
-          { key: "estudiante", label: "Estudiante", width: "32%" },
-          { key: "notaFinal", label: "Nota", width: "14%", align: "center", render: (r) => r.notaFinal !== null ? Number(r.notaFinal).toFixed(1) : "—" },
-          { key: "estado", label: "Estado", width: "14%", align: "center" },
-        ]}
-        infoItems={[
-          { label: "Materia", value: reporte?.curso?.materia ? `${reporte.curso.materia} - Grupo ${reporte.curso.codigoGrupo}` : "—" },
-          { label: "Docente", value: reporte?.curso?.docente || "—" },
-          { label: "Periodo", value: reporte?.curso?.periodo || "—" },
-          { label: "Carrera", value: reporte?.curso?.carrera || "—" },
-        ]}
-        stats={[
-          { label: "Aprobados", value: resumenFiltrado.aprobados, bg: "#d1fae5", text: "#059669" },
-          { label: "Reprobados", value: resumenFiltrado.reprobados, bg: "#fee2e2", text: "#dc2626" },
-          { label: "Cursando", value: resumenFiltrado.cursando, bg: "#fef3c7", text: "#d97706" },
-        ]}
-        footerExtra={
-          <>
-            <span><strong>Promedio General:</strong> {resumenFiltrado.promedio ? resumenFiltrado.promedio.toFixed(1) : "—"}</span>
-            <span><strong>Total Estudiantes:</strong> {estudiantesFiltrados.length || 0}</span>
-          </>
-        }
-      />
+
     </div>
   );
 }

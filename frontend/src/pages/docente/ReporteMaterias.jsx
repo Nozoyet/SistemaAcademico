@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import useAuthStore from "../../stores/useAuthStore";
@@ -28,14 +28,6 @@ export default function ReporteMaterias() {
       if (r.data?.success) setOpciones(r.data.data);
     }).catch(() => {});
   }, []);
-
-  const [autoReady, setAutoReady] = useState(false);
-
-  useEffect(() => {
-    if (!autoReady) { setAutoReady(true); return; }
-    const timer = setTimeout(() => generarPreview(), 400);
-    return () => clearTimeout(timer);
-  }, [filtros]);
 
   const change = (e) => setFiltros({ ...filtros, [e.target.name]: e.target.value });
   const changeFiltros = (nuevos) => setFiltros(nuevos);
