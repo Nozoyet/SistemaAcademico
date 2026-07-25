@@ -16,7 +16,7 @@ class AuthController extends Controller
             'contrasena'    => 'required|string',
         ]);
 
-        // Buscar usuario manualmente porque Auth::attempt usa 'password' internamente
+        // Buscar usuario 
         $usuario = Usuario::where('nombreUsuario', $request->nombreUsuario)
                           ->where('estado', true)
                           ->first();
@@ -28,7 +28,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // Revocar tokens anteriores (login fresco)
+        // Revocar tokens anteriores
         $usuario->tokens()->delete();
 
         $token = $usuario->createToken('auth_token')->plainTextToken;

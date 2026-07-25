@@ -52,9 +52,17 @@ export default function Login() {
       setLoading(false);
     }
   };
+// Dentro del componente, antes del return, o en un archivo CSS global:
+
 
   return (
     <div style={styles.root}>
+      <style>{`
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`}</style>
       {/* Panel izquierdo */}
       <div style={styles.left}>
         <div style={styles.leftInner}>
@@ -414,29 +422,35 @@ const styles = {
     fontSize: "0.84rem",
   },
 
-  btn: {
-    padding: "0.8rem",
-    background: BRAND,
-    color: "white",
-    border: "none",
-    borderRadius: 10,
-    fontSize: "0.95rem",
-    fontWeight: 600,
-    cursor: "pointer",
-    minHeight: 46,
-  },
+ btn: {
+  padding: "0.8rem",
+  background: BRAND,
+  color: "white",
+  border: "none",
+  borderRadius: 10,
+  fontSize: "0.95rem",
+  fontWeight: 600,
+  cursor: "pointer",
+  minHeight: 46,
+  display: "flex",           // 👈 para centrar el spinner
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+spinner: {
+  display: "inline-block",   // 👈 el fix clave: sin esto el círculo se aplasta
+  width: 18,
+  height: 18,
+  border: "2.5px solid rgba(255,255,255,0.35)",
+  borderTopColor: "white",
+  borderRadius: "50%",
+  animation: "spin 0.7s linear infinite",
+  boxSizing: "border-box",   // evita que el border cambie el tamaño total
+},
 
   btnDisabled: {
     background: "#93c5fd",
     cursor: "not-allowed",
   },
 
-  spinner: {
-    width: 18,
-    height: 18,
-    border: "2.5px solid rgba(255,255,255,0.35)",
-    borderTopColor: "white",
-    borderRadius: "50%",
-    animation: "spin 0.7s linear infinite",
-  },
 };
