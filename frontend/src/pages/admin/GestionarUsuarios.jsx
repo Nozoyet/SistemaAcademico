@@ -37,6 +37,8 @@ export default function GestionUsuarios() {
   const navigate = useNavigate();
   const [usuarios, setUsuarios] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [pagina, setPagina] = useState(1);
+const [porPagina, setPorPagina] = useState(25);
   const [error, setError] = useState("");
   const [mostrarForm, setMostrarForm] = useState(false);
   const [busqueda, setBusqueda] = useState("");
@@ -45,6 +47,7 @@ export default function GestionUsuarios() {
   const [notif, setNotif] = useState(null);
 
   useEffect(() => { cargarUsuarios(); }, []);
+  useEffect(() => { setPagina(1); }, [busqueda, filtroRol]);
 
   const cargarUsuarios = async () => {
     setCargando(true); setError("");
@@ -91,6 +94,11 @@ export default function GestionUsuarios() {
     const matchRol = filtroRol === "Todos" || u.rol === filtroRol;
     return matchBusq && matchRol;
   });
+
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
+const paginaSegura = Math.min(pagina, totalPaginas);
+const inicio = (paginaSegura - 1) * porPagina;
+const paginados = filtrados.slice(inicio, inicio + porPagina);
 
   const conteo = (rol) => usuarios.filter(u => u.rol === rol).length;
 
@@ -265,9 +273,9 @@ export default function GestionUsuarios() {
                 </tr>
               </thead>
               <tbody>
-                {filtrados.map((u, i) => (
+                {paginados.map((u, i) => (
                   <tr key={u.id}
-                    style={{ borderBottom: i < filtrados.length - 1 ? "1px solid #F1F5F9" : "none" }}
+                    style={{ borderBottom: i < paginados.length - 1 ? "1px solid #F1F5F9" : "none" }}
                     onMouseOver={e => e.currentTarget.style.backgroundColor = "#FAFBFF"}
                     onMouseOut={e => e.currentTarget.style.backgroundColor = "transparent"}
                   >
@@ -320,10 +328,58 @@ export default function GestionUsuarios() {
             </table>
           )}
           {!cargando && filtrados.length > 0 && (
-            <div style={{ padding: "10px 16px", backgroundColor: "#F8FAFC", borderTop: "1px solid #F1F5F9", fontSize: 12, color: "#94A3B8" }}>
-              Mostrando {filtrados.length} de {usuarios.length} usuarios
-            </div>
-          )}
+  <div style={{
+    padding: "10px 16px", backgroundColor: "#F8FAFC", borderTop: "1px solid #F1F5F9",
+    display: "flex", justifyContent: "space-between", alignItems: "center",
+    flexWrap: "wrap", gap: 10,
+  }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#94A3B8" }}>
+      <span>
+        Mostrando {inicio + 1}–{Math.min(inicio + porPagina, filtrados.length)} de {filtrados.length}
+      </span>
+      <select
+        value={porPagina}
+        onChange={(e) => { setPorPagina(Number(e.target.value)); setPagina(1); }}
+        style={{
+          border: "1px solid #E2E8F0", borderRadius: 6, padding: "3px 6px",
+          fontSize: 12, color: "#475569", background: "#fff", cursor: "pointer", outline: "none",
+        }}
+      >
+        {[10, 25, 50, 100].map((n) => (
+          <option key={n} value={n}>{n} por página</option>
+        ))}
+      </select>
+    </div>
+
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <button
+        onClick={() => setPagina((p) => Math.max(1, p - 1))}
+        disabled={paginaSegura === 1}
+        style={{
+          padding: "5px 10px", borderRadius: 6, border: "1px solid #E2E8F0",
+          background: "#fff", color: paginaSegura === 1 ? "#CBD5E1" : "#475569",
+          fontSize: 12, fontWeight: 600, cursor: paginaSegura === 1 ? "not-allowed" : "pointer",
+        }}
+      >
+        ‹ Anterior
+      </button>
+      <span style={{ fontSize: 12, color: "#64748B", fontWeight: 600, padding: "0 4px" }}>
+        Página {paginaSegura} de {totalPaginas}
+      </span>
+      <button
+        onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+        disabled={paginaSegura === totalPaginas}
+        style={{
+          padding: "5px 10px", borderRadius: 6, border: "1px solid #E2E8F0",
+          background: "#fff", color: paginaSegura === totalPaginas ? "#CBD5E1" : "#475569",
+          fontSize: 12, fontWeight: 600, cursor: paginaSegura === totalPaginas ? "not-allowed" : "pointer",
+        }}
+      >
+        Siguiente ›
+      </button>
+    </div>
+  </div>
+)}
         </div>
       </div>
 
