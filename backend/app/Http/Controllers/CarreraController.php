@@ -24,7 +24,7 @@ class CarreraController extends Controller
             'nombre'      => 'required|string|max:255',
             'descripcion' => 'nullable|string|max:1000',
             'estado'      => 'boolean',
-            'idModalidad' => 'required|exists:modalidad,id',
+            'idModalidad' => 'nullable|exists:modalidad,id',
         ]);
 
         $validated['usuarioA'] = $request->user()->id;
@@ -71,7 +71,7 @@ class CarreraController extends Controller
             'nombre'      => 'sometimes|string|max:255',
             'descripcion' => 'nullable|string|max:1000',
             'estado'      => 'boolean',
-            'idModalidad' => 'sometimes|exists:modalidad,id',
+            'idModalidad' => 'sometimes|nullable|exists:modalidad,id',
         ]);
 
         $carrera->update($validated);

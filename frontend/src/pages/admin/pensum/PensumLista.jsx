@@ -69,19 +69,24 @@ export default function PensumLista() {
       </header>
       <main style={styles.contentContainer}>
         <div style={styles.contentHeader}>
-          <div>
-            <h1 style={styles.title}>Pensums</h1>
-            <p style={styles.subtitle}>Gestiona los planes de estudio de cada carrera</p>
-          </div>
-          <button
-            onClick={() => navigate("/admin/pensum/nuevo")}
-            style={styles.btnPrimary}
-            onMouseOver={(e) => { e.currentTarget.style.background = "#6d28d9" }}
-            onMouseOut={(e) => { e.currentTarget.style.background = "#7c3aed" }}
-          >
-            + Nuevo pensum
-          </button>
-        </div>
+  <div>
+    <h1 style={styles.title}>Pensums</h1>
+    <p style={styles.subtitle}>Gestiona los planes de estudio de cada carrera</p>
+  </div>
+  <div style={{ display: "flex", gap: 8 }}>
+    <button onClick={() => navigate("/admin/carreras")} style={styles.btnOutline}>
+      Gestionar carreras
+    </button>
+    <button
+      onClick={() => navigate("/admin/pensum/nuevo")}
+      style={styles.btnPrimary}
+      onMouseOver={(e) => { e.currentTarget.style.background = "#6d28d9" }}
+      onMouseOut={(e) => { e.currentTarget.style.background = "#7c3aed" }}
+    >
+      + Nuevo pensum
+    </button>
+  </div>
+</div>
 
         {pensums.length === 0 ? (
           <div style={styles.empty}>
@@ -104,7 +109,6 @@ export default function PensumLista() {
                     </span>
                   </div>
                   <p style={styles.cardCodigo}>Código carrera: {p.carrera?.codigo || "—"}</p>
-                  {p.creditos_totales && <p style={{ ...styles.cardCodigo, marginTop: "0.2rem" }}>Créditos: {p.creditos_totales}</p>}
                 </div>
                 <div style={styles.cardActions}>
                   <button onClick={() => navigate(`/admin/pensum/${p.id}`)} style={styles.btnOutline}>

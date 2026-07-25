@@ -13,9 +13,6 @@ class Pensum extends Model
     protected $fillable = [
         'idCarrera',
         'anioCreacion',
-        'duracion',
-        'descripcion',
-        'creditos_totales',
         'estado',
         'usuarioA',
         'estadoA',

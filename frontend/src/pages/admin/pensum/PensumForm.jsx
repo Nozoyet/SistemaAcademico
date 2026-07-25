@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../../services/api";
 import ConfirmModal from "../../../components/common/ConfirmModal";
 
@@ -14,9 +14,10 @@ function newTempId() { return `temp_${++tempIdCounter}`; }
 
 export default function PensumForm() {
   const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
   const [carreras, setCarreras] = useState([]);
-  const [form, setForm] = useState({ idCarrera: "", anioCreacion: new Date().getFullYear().toString(), descripcion: "", creditos_totales: "", estado: 1 });
+  const [form, setForm] = useState({ idCarrera: searchParams.get("idCarrera") || "", anioCreacion: new Date().getFullYear().toString(), estado: 1 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -174,6 +175,22 @@ export default function PensumForm() {
   const guardarMateriaLocal = (e) => {
     e.preventDefault();
     setMError("");
+     if (!mForm.codigo.trim()) {
+    setMError("El código es obligatorio");
+    return;
+  }
+  if (!mForm.nombre.trim()) {
+    setMError("El nombre es obligatorio");
+    return;
+  }
+  if (!mForm.creditos || Number(mForm.creditos) < 1) {
+    setMError("Los créditos deben ser al menos 1");
+    return;
+  }
+  if (!mForm.semestre) {
+    setMError("Debes seleccionar un semestre");
+    return;
+  }
 
     if (materias.some((m) => m._tempId !== modal?.tempId && m.codigo === mForm.codigo)) {
       setMError("Ya existe una materia con ese código");
@@ -207,62 +224,85 @@ export default function PensumForm() {
     setDeleteTarget(null);
   };
 
-  const guardarTodo = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const pensumRes = await api.post("/pensum", form);
-      const pensumId = pensumRes.data.data.id;
+ const validarFormulario = () => {
+  if (!form.idCarrera) {
+    return "Debes seleccionar una carrera.";
+  }
+  if (!form.anioCreacion || !/^\d{4}$/.test(form.anioCreacion.toString())) {
+    return "El año de creación debe tener 4 dígitos.";
+  }
+  const anio = Number(form.anioCreacion);
+  const anioActual = new Date().getFullYear();
+  if (anio < anioActual) {
+    return `El año de creación no puede ser anterior a ${anioActual}.`;
+  }
+  if (anio > 2099) {
+    return "El año de creación no puede ser mayor a 2099.";
+  }
+  
+  return null;
+};
 
-      const tempAReal = {};
-      const errores = [];
-      for (const m of materias) {
-        try {
-          const payload = {
-            codigo: m.codigo,
-            nombre: m.nombre,
-            creditos: m.creditos,
-            semestre: m.semestre,
-            descripcion: m.descripcion,
-            idPensum: pensumId,
-            idPrerequisito: null,
-            estado: m.estado,
-          };
-          const res = await api.post("/materia", payload);
-          tempAReal[m._tempId] = res.data.data.id;
-        } catch (err) {
-          errores.push(`${m.codigo} — ${m.nombre}`);
-        }
-      }
+const guardarTodo = async () => {
+  const errorValidacion = validarFormulario();
+  if (errorValidacion) {
+    setError(errorValidacion);
+    return;
+  }
 
-      for (const m of materias) {
-        if (m._prereqTemp && tempAReal[m._tempId]) {
-          const realPrereqId = tempAReal[m._prereqTemp];
-          if (realPrereqId) {
-            try {
-              await api.put(`/materia/${tempAReal[m._tempId]}`, { idPrerequisito: realPrereqId });
-            } catch (err) { }
-          }
-        }
-      }
+  setLoading(true);
+  setError("");
+  try {
+    const pensumRes = await api.post("/pensum", form);
+    const pensumId = pensumRes.data.data.id;
 
-      if (errores.length > 0) {
-        setError(`Pensum creado, pero no se pudieron agregar estas materias (código duplicado): ${errores.join(", ")}`);
-        setTimeout(() => navigate("/admin/pensum"), 2000);
-      } else {
-        navigate("/admin/pensum");
+    const tempAReal = {};
+    const errores = [];
+    for (const m of materias) {
+      try {
+        const payload = {
+          codigo: m.codigo,
+          nombre: m.nombre,
+          creditos: m.creditos,
+          semestre: m.semestre,
+          descripcion: m.descripcion,
+          idPensum: pensumId,
+          idPrerequisito: null,
+          estado: m.estado,
+        };
+        const res = await api.post("/materia", payload);
+        tempAReal[m._tempId] = res.data.data.id;
+      } catch (err) {
+        errores.push(`${m.codigo} — ${m.nombre}`);
       }
-    } catch (err) {
-      setError(err.response?.data?.message || "Error al guardar el pensum");
-      setLoading(false);
-      return;
-    } finally {
-      setLoading(false);
     }
-  };
 
+    for (const m of materias) {
+      if (m._prereqTemp && tempAReal[m._tempId]) {
+        const realPrereqId = tempAReal[m._prereqTemp];
+        if (realPrereqId) {
+          try {
+            await api.put(`/materia/${tempAReal[m._tempId]}`, { idPrerequisito: realPrereqId });
+          } catch (err) { }
+        }
+      }
+    }
+
+    if (errores.length > 0) {
+      setError(`Pensum creado, pero no se pudieron agregar estas materias (código duplicado): ${errores.join(", ")}`);
+      setTimeout(() => navigate("/admin/pensum"), 2000);
+    } else {
+      navigate("/admin/pensum");
+    }
+  } catch (err) {
+    setError(err.response?.data?.message || "Error al guardar el pensum");
+    setLoading(false);
+    return;
+  } finally {
+    setLoading(false);
+  }
+};
   const creditosReales = materias.reduce((s, m) => s + (m.creditos || 0), 0);
-  const metaCreditos = form.creditos_totales;
   const semsDisponibles = [...new Set(materias.map((m) => m.semestre).filter(Boolean))].sort((a, b) => a - b);
   const semActual = Number(mForm.semestre);
 
@@ -302,24 +342,28 @@ export default function PensumForm() {
 
             <div style={styles.grid2}>
               <div style={styles.field}>
-                <label style={styles.label}>Carrera</label>
-                <select name="idCarrera" value={form.idCarrera} onChange={handleChange} style={styles.input} required>
-                  <option value="">Seleccionar carrera</option>
-                  {carreras.map((c) => (
-                    <option key={c.id} value={c.id}>{c.nombre} ({c.codigo})</option>
-                  ))}
-                </select>
-              </div>
+  <label style={styles.label}>Carrera</label>
+  <select name="idCarrera" value={form.idCarrera} onChange={handleChange} style={styles.input} required>
+    <option value="">Seleccionar carrera</option>
+    {carreras.map((c) => (
+      <option key={c.id} value={c.id}>{c.nombre} ({c.codigo})</option>
+    ))}
+  </select>
+  <button
+    type="button"
+    onClick={() => navigate("/admin/carreras")}
+    style={{ background: "none", border: "none", color: "#1D4ED8", fontSize: "0.78rem", padding: 0, marginTop: 4, cursor: "pointer", textAlign: "left" }}
+  >
+    + ¿No existe la carrera? Créala aquí
+  </button>
+</div>
 
               <div style={styles.field}>
                 <label style={styles.label}>Año de creación</label>
                 <input name="anioCreacion" type="number" min={new Date().getFullYear()} max="2099" value={form.anioCreacion} onChange={handleChange} style={styles.input} required />
               </div>
 
-              <div style={styles.field}>
-                <label style={styles.label}>Créditos totales</label>
-                <input name="creditos_totales" type="number" min="1" placeholder="Ej: 200" value={form.creditos_totales} onChange={handleChange} style={styles.input} />
-              </div>
+              
 
               <div style={styles.field}>
                 <label style={styles.label}>Estado</label>
@@ -328,11 +372,6 @@ export default function PensumForm() {
                   <option value={0}>Inactivo</option>
                 </select>
               </div>
-            </div>
-
-            <div style={styles.field}>
-              <label style={styles.label}>Descripción / Objetivos</label>
-              <textarea name="descripcion" rows="2" placeholder="Describe el plan de estudio, objetivos y perfil de egreso..." value={form.descripcion} onChange={handleChange} style={{ ...styles.input, resize: "vertical", minHeight: 60, fontFamily: "inherit" }} />
             </div>
 
             <hr style={{ margin: "1.5rem 0", border: "none", borderTop: "2px dashed #e2e8f0" }} />
@@ -422,7 +461,7 @@ export default function PensumForm() {
             {materias.length > 0 && (
               <div style={{ marginTop: "0.75rem", padding: "0.6rem 1rem", background: "#fafafa", borderRadius: 8, display: "flex", gap: "1.5rem", flexWrap: "wrap", fontSize: "0.82rem", color: "#475569" }}>
                 <span><strong>Total materias:</strong> {materias.length}</span>
-                <span><strong>Créditos:</strong> {creditosReales}{metaCreditos ? ` / ${metaCreditos}` : ""}</span>
+                <span><strong>Créditos:</strong> {creditosReales}</span>
                 {semsDisponibles.length > 0 && <span><strong>Semestres:</strong> 1 - {Math.max(...semsDisponibles)}</span>}
               </div>
             )}
@@ -448,7 +487,7 @@ export default function PensumForm() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                 </button>
               </div>
-              <form onSubmit={guardarMateriaLocal} style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <form onSubmit={guardarMateriaLocal} noValidate style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
                 {mError && <div style={styles.error}>{mError}</div>}
 
                 <div style={styles.grid2}>

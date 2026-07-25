@@ -38,7 +38,7 @@ const ROL_CONFIG = {
           { label: "Generar Reportes de Docentes", href: "/admin/reportes/docentes", icon: "ph ph-chalkboard-teacher" }
         ]
       },
-      { label: "Gestionar Pensum", href: "/admin/pensum", icon: "ph ph-folders" },
+      { label: "Gestionar Carreras y Pensums", href: "/admin/pensum", icon: "ph ph-folders" },
       { label: "Gestionar Perfil", href: "/admin/perfil", icon: "ph ph-user" },
     ],
   },

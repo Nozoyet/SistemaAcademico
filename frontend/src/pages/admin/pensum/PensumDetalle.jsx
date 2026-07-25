@@ -64,7 +64,7 @@ export default function PensumDetalle() {
   if (!pensum) return null;
 
   const creditosReales = materiasPensum.reduce((s, m) => s + (m.creditos || 0), 0);
-  const metaCreditos = pensum.creditos_totales;
+  
 
   return (
     <div style={styles.root}>
@@ -122,13 +122,6 @@ export default function PensumDetalle() {
               <span style={styles.infoVal}>{materiasPensum.length}</span>
             </div>
             <div style={styles.infoItem}>
-              <span style={styles.infoLabel}>Créditos</span>
-              <span style={{ ...styles.infoVal, ...(metaCreditos ? { fontWeight: 700 } : {}) }}>
-                {creditosReales}{metaCreditos ? ` / ${metaCreditos}` : ""}
-                {metaCreditos ? ` (${Math.round((creditosReales / metaCreditos) * 100)}%)` : ""}
-              </span>
-            </div>
-            <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Semestres</span>
               <span style={styles.infoVal}>{semsDisponibles.length > 0 ? `1 - ${Math.max(...semsDisponibles)}` : "—"}</span>
             </div>
@@ -149,12 +142,7 @@ export default function PensumDetalle() {
               </button>
             </div>
           </div>
-          {pensum.descripcion && (
-            <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: "1px solid #f1f5f9" }}>
-              <span style={styles.infoLabel}>Descripción</span>
-              <p style={{ ...styles.infoVal, margin: "0.3rem 0 0", lineHeight: 1.6, fontSize: "0.85rem" }}>{pensum.descripcion}</p>
-            </div>
-          )}
+          
         </div>
 
         <h2 style={{ fontSize: "1.15rem", fontWeight: 600, color: "#0f172a", margin: "0 0 1rem" }}>Materias del pensum</h2>

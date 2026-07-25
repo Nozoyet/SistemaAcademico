@@ -14,6 +14,7 @@ use App\Http\Controllers\DocenteController;
 use App\Http\Controllers\EstudianteReporteController;
 use App\Http\Controllers\ReporteDocenteController;
 use App\Http\Controllers\NotificacionController;
+use App\Http\Controllers\ModalidadController;
 
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
@@ -45,6 +46,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
    
     Route::apiResource('carrera', CarreraController::class);
     Route::apiResource('materia', MateriaController::class);
+    Route::get('/modalidad', [ModalidadController::class, 'index']);
+Route::apiResource('carrera', CarreraController::class);
+Route::apiResource('materia', MateriaController::class);
 
 // Períodos académicos
     Route::get('/periodos',        [PeriodoAcademicoController::class, 'index']);

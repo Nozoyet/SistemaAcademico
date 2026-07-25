@@ -21,12 +21,10 @@ class PensumController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'idCarrera'       => 'required|exists:carrera,id',
-            'anioCreacion'    => 'required|digits:4|integer|min:' . date('Y') . '|max:2099',
-            'descripcion'     => 'nullable|string|max:1000',
-            'creditos_totales'=> 'nullable|integer|min:1',
-            'estado'          => 'boolean',
-        ]);
+    'idCarrera'       => 'required|exists:carrera,id',
+    'anioCreacion'    => 'required|digits:4|integer|min:' . date('Y') . '|max:2099',
+    'estado'          => 'boolean',
+]);
 
         $exists = Pensum::where('idCarrera', $validated['idCarrera'])
                         ->where('anioCreacion', $validated['anioCreacion'])

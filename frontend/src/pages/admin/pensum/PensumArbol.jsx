@@ -40,22 +40,36 @@ function buildTree(materias) {
   return roots;
 }
 
-function MateriaCard({ m, onTip }) {
+function MateriaCard({ m, onTip, dependientes }) {
   const sc = cs(m.semestre);
+  const esRaiz = !m.idPrerequisito;
+
   return (
     <div
-      style={{ ...css.card, borderColor: sc.color, background: sc.bg }}
+      style={css.card(sc)}
       onMouseEnter={(e) => onTip && onTip(m.descripcion, e)}
       onMouseMove={(e) => onTip && onTip(m.descripcion, e)}
       onMouseLeave={() => onTip && onTip(null)}
+      onMouseOver={(e) => {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = `0 6px 16px ${sc.color}33`;
+      }}
+      onMouseOut={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = `0 2px 8px ${sc.color}22`;
+      }}
     >
+      {esRaiz && <div style={{ ...css.rootBadge, background: sc.color }}>Inicio</div>}
       <div style={css.ch}>
         <span style={{ ...css.code, background: sc.color, color: "#fff" }}>{m.codigo}</span>
         <span style={css.cr}>{m.creditos} cr</span>
       </div>
       <div style={css.name}>{m.nombre}</div>
       <div style={css.cf}>
-        <span style={css.st}>{sc.label}</span>
+        <span style={{ ...css.st, color: sc.color }}>● {sc.label}</span>
+        {dependientes > 0 && (
+          <span style={css.depBadge}>{dependientes} →</span>
+        )}
       </div>
     </div>
   );
@@ -64,8 +78,13 @@ function MateriaCard({ m, onTip }) {
 function ConnectorLine() {
   return (
     <div style={css.connector}>
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style={{ display: "block" }}>
-        <line x1="0" y1="14" x2="28" y2="14" stroke="#94a3b8" strokeWidth="2" />
+      <svg width="32" height="24" viewBox="0 0 32 24" fill="none" style={{ display: "block" }}>
+        <defs>
+          <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <polygon points="0 0, 6 3, 0 6" fill="#94a3b8" />
+          </marker>
+        </defs>
+        <line x1="0" y1="12" x2="26" y2="12" stroke="#94a3b8" strokeWidth="2" markerEnd="url(#arrowhead)" />
       </svg>
     </div>
   );
@@ -78,7 +97,7 @@ function Subtree({ node, padres = [], onTip }) {
   return (
     <div style={css.subtree}>
       {padres.length > 0 && <ConnectorLine />}
-      <MateriaCard m={node} onTip={onTip} />
+      <MateriaCard m={node} onTip={onTip} dependientes={node.children.length} />
       {hasKids && (
         <div style={css.kids}>
           {node.children.length === 1 ? (
@@ -90,8 +109,8 @@ function Subtree({ node, padres = [], onTip }) {
                 {node.children.map((child) => (
                   <div key={child.id} style={css.branchItem}>
                     <div style={css.branchConn}>
-                      <svg width="20" height="30" viewBox="0 0 20 30" fill="none" style={{ display: "block" }}>
-                        <line x1="0" y1="15" x2="20" y2="15" stroke="#94a3b8" strokeWidth="2" />
+                      <svg width="24" height="30" viewBox="0 0 24 30" fill="none" style={{ display: "block" }}>
+                        <line x1="0" y1="15" x2="20" y2="15" stroke="#94a3b8" strokeWidth="2" markerEnd="url(#arrowhead)" />
                       </svg>
                     </div>
                     <Subtree node={child} padres={todos} onTip={onTip} />
@@ -168,11 +187,17 @@ export default function PensumArbol() {
           <span style={{ ...css.headerTitle, color: ADMIN_CONFIG.color }}>Diagrama Pensum</span>
         </div>
       </header>
+
       <main style={css.contentContainer}>
         <div style={css.contentHeader}>
           <div>
             <h1 style={css.tt}>{pensum.carrera?.nombre || "Pensum"}</h1>
-            <p style={css.sb}>{pensum.anioCreacion} · {totalM} materias · {totalC} créditos{pensum.creditos_totales ? ` / meta: ${pensum.creditos_totales}` : ""}</p>
+            <div style={css.statsRow}>
+              <span style={css.statPill}>{pensum.anioCreacion}</span>
+              <span style={css.statPill}>{totalM} materias</span>
+              <span style={css.statPill}>{totalC} créditos</span>
+              {sems.length > 0 && <span style={css.statPill}>{sems.length} semestres</span>}
+            </div>
           </div>
           <button onClick={() => navigate(`/admin/pensum/${id}`)} style={css.btn}
             onMouseOver={(e) => { e.currentTarget.style.background = "#f1f5f9" }}
@@ -197,10 +222,15 @@ export default function PensumArbol() {
           ))}
         </div>
 
+        <div style={css.legend}>
+          <span style={css.legendItem}><span style={{ ...css.legendDot, background: "#7c3aed" }} /> Inicio (sin prerrequisito)</span>
+          <span style={css.legendItem}><span style={css.legendArrow}>→</span> N° de materias que dependen de esta</span>
+        </div>
+
         <div style={css.canvas}>
           {arbol.length > 0 ? (
             <div style={css.forest}>
-              {arbol.map((root, i) => (
+              {arbol.map((root) => (
                 <div key={root.id} style={css.tree}>
                   <Subtree node={root} onTip={onTip} />
                 </div>
@@ -238,31 +268,73 @@ const css = {
   backBtn: { display: "flex", alignItems: "center", gap: 7, padding: "0.45rem 1rem", border: "none", borderRadius: 8, background: "#7c3aed", color: "white", fontSize: "0.84rem", fontWeight: 500, cursor: "pointer" },
   headerBrand: { display: "flex", alignItems: "center", gap: 10 },
   headerTitle: { fontWeight: 700, fontSize: "1rem", letterSpacing: "-0.01em" },
-  contentHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem", maxWidth: 960, margin: "0 auto 1rem" },
+
+  contentHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem", flexWrap: "wrap", gap: "0.75rem", maxWidth: 960, margin: "0 auto 1.25rem" },
   tt: { fontSize: "1.5rem", fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" },
-  sb: { fontSize: "0.85rem", color: "#64748b", margin: "0.3rem 0 0" },
-  btn: { padding: "0.4rem 0.85rem", background: "white", color: "#1e293b", border: "1.5px solid #e2e8f0", borderRadius: 6, fontSize: "0.82rem", fontWeight: 500, cursor: "pointer" },
-  filters: { display: "flex", gap: "0.5rem", flexWrap: "wrap", maxWidth: 960, margin: "0 auto 1.5rem" },
-  fb: { padding: "0.3rem 0.85rem", borderRadius: 999, fontSize: "0.78rem", fontWeight: 600, border: "2px solid #e2e8f0", cursor: "pointer", transition: "all .12s" },
+
+  statsRow: { display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.5rem" },
+  statPill: {
+    padding: "0.25rem 0.7rem", borderRadius: 999, fontSize: "0.78rem", fontWeight: 600,
+    background: "#ede9fe", color: "#6d28d9",
+  },
+
+  btn: { padding: "0.4rem 0.85rem", background: "white", color: "#1e293b", border: "1.5px solid #e2e8f0", borderRadius: 6, fontSize: "0.82rem", fontWeight: 500, cursor: "pointer", height: "fit-content" },
+
+  filters: { display: "flex", gap: "0.5rem", flexWrap: "wrap", maxWidth: 960, margin: "0 auto 0.75rem" },
+  fb: { padding: "0.3rem 0.85rem", borderRadius: 999, fontSize: "0.78rem", fontWeight: 600, border: "2px solid #e2e8f0", cursor: "pointer", transition: "all .15s ease" },
   fba: { borderColor: "#1D4ED8", color: "#1D4ED8", background: "#eff6ff" },
-  canvas: { overflowX: "auto", overflowY: "auto", padding: "2.5rem", background: "white", borderRadius: 12, border: "1px solid #e2e8f0", minHeight: 300, boxShadow: "0 1px 6px rgba(0,0,0,0.03)" },
-  forest: { display: "flex", flexDirection: "column", gap: "3.5rem", minWidth: "max-content" },
+
+  legend: { display: "flex", gap: "1.5rem", flexWrap: "wrap", maxWidth: 960, margin: "0 auto 1.5rem", fontSize: "0.75rem", color: "#64748b" },
+  legendItem: { display: "flex", alignItems: "center", gap: 6 },
+  legendDot: { width: 10, height: 10, borderRadius: "50%", display: "inline-block" },
+  legendArrow: { fontWeight: 700, color: "#94a3b8" },
+
+  canvas: {
+    overflowX: "auto", overflowY: "auto", padding: "3rem 2.5rem", background: "#ffffff",
+    backgroundImage: "radial-gradient(#e2e8f0 1px, transparent 1px)",
+    backgroundSize: "20px 20px",
+    borderRadius: 14, border: "1px solid #e2e8f0", minHeight: 320,
+    boxShadow: "0 1px 8px rgba(0,0,0,0.04)",
+  },
+  forest: { display: "flex", flexDirection: "column", gap: "4rem", minWidth: "max-content" },
   tree: {},
   subtree: { display: "flex", alignItems: "center", gap: 0 },
   kids: { display: "flex", alignItems: "center" },
-  connector: { display: "flex", alignItems: "center", justifyContent: "center", width: 32, flexShrink: 0 },
+  connector: { display: "flex", alignItems: "center", justifyContent: "center", width: 34, flexShrink: 0 },
   branch: { display: "flex", alignItems: "stretch", marginLeft: "2px" },
-  branchLine: { width: 2, background: "#cbd5e1", flexShrink: 0, marginLeft: "16px" },
-  branchKids: { display: "flex", flexDirection: "column", gap: "2rem", paddingLeft: "0.75rem" },
+  branchLine: { width: 2, background: "#cbd5e1", flexShrink: 0, marginLeft: "16px", borderRadius: 2 },
+  branchKids: { display: "flex", flexDirection: "column", gap: "2.25rem", paddingLeft: "0.75rem" },
   branchItem: { display: "flex", alignItems: "center", gap: 0 },
-  branchConn: { display: "flex", alignItems: "center", justifyContent: "center", width: 20, flexShrink: 0 },
-  card: { borderRadius: 10, border: "2px solid", padding: "0.65rem 0.85rem", minWidth: 170, maxWidth: 210, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" },
-  ch: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.25rem" },
+  branchConn: { display: "flex", alignItems: "center", justifyContent: "center", width: 24, flexShrink: 0 },
+
+  card: (sc) => ({
+    position: "relative",
+    borderRadius: 12,
+    border: `2px solid ${sc.color}`,
+    background: sc.bg,
+    padding: "0.75rem 0.95rem",
+    minWidth: 175,
+    maxWidth: 215,
+    boxShadow: `0 2px 8px ${sc.color}22`,
+    transition: "transform .15s ease, box-shadow .15s ease",
+    cursor: "default",
+  }),
+  rootBadge: {
+    position: "absolute", top: -9, left: 10, color: "white", fontSize: "0.6rem", fontWeight: 700,
+    padding: "0.1rem 0.45rem", borderRadius: 999, letterSpacing: "0.03em", textTransform: "uppercase",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+  },
+  ch: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" },
   code: { fontSize: "0.68rem", fontWeight: 700, padding: "0.15rem 0.4rem", borderRadius: 4, letterSpacing: "0.02em" },
   cr: { fontSize: "0.7rem", color: "#64748b", fontWeight: 600 },
-  name: { fontSize: "0.82rem", fontWeight: 500, color: "#0f172a", lineHeight: 1.3 },
-  cf: { display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.3rem" },
-  st: { fontSize: "0.65rem", fontWeight: 600, color: "#94a3b8" },
+  name: { fontSize: "0.82rem", fontWeight: 500, color: "#0f172a", lineHeight: 1.35 },
+  cf: { display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.4rem" },
+  st: { fontSize: "0.68rem", fontWeight: 700 },
+  depBadge: {
+    fontSize: "0.65rem", fontWeight: 700, color: "#0d9488", background: "#f0fdfa",
+    padding: "0.05rem 0.4rem", borderRadius: 999,
+  },
+
   tooltip: {
     position: "fixed", padding: "0.5rem 0.75rem", background: "#0f172a", color: "white",
     fontSize: "0.75rem", lineHeight: 1.4, borderRadius: 8, maxWidth: 260,

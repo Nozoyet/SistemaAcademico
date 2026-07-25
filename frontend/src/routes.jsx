@@ -11,6 +11,8 @@ import PensumLista from './pages/admin/pensum/PensumLista.jsx';
 import PensumForm from './pages/admin/pensum/PensumForm.jsx';
 import PensumDetalle from './pages/admin/pensum/PensumDetalle.jsx';
 import PensumArbol from './pages/admin/pensum/PensumArbol.jsx';
+import CarreraLista from './pages/admin/pensum/CarreraLista.jsx';
+
 import CursosDisponibles from './pages/estudiante/CursosDisponibles.jsx';
 import MisInscripciones from './pages/estudiante/MisInscripciones.jsx';
 
@@ -101,6 +103,22 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  {
+  path: '/admin/carreras',
+  element: (
+    <ProtectedRoute roles={['Administrador']}>
+      <CarreraLista />
+    </ProtectedRoute>
+  ),
+},
+{
+  path: '/admin/pensum',
+  element: (
+    <ProtectedRoute roles={['Administrador']}>
+      <PensumLista />
+    </ProtectedRoute>
+  ),
+},
   {
     path: '/docente/bienvenida',
     element: (
