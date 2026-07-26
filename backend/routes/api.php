@@ -16,6 +16,8 @@ use App\Http\Controllers\ReporteDocenteController;
 use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\ModalidadController;
 
+use App\Http\Controllers\ImpersonationController;
+
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
 
@@ -36,6 +38,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/{id}',    [UsuarioController::class, 'destroy']);
         Route::put('/{id}/rol',   [UsuarioController::class, 'asignarRol']);
     });
+    
+    //Impersonation routes
+Route::post('/usuarios/{id}/impersonar', [ImpersonationController::class, 'start']);
+Route::post('/impersonar/detener', [ImpersonationController::class, 'stop']);
 
     // PERFIL
     Route::put('/perfil', [UsuarioController::class, 'actualizarPerfil']);

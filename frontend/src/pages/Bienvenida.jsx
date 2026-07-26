@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../stores/useAuthStore";
+import { detenerImpersonacion } from "../services/api";
 import { getNoLeidasCount } from "../services/notificationService";
 import Loading from "../components/common/Loading";
+import ConfirmModal from "../components/common/ConfirmModal";
 
 const ROL_CONFIG = {
   Administrador: {
@@ -83,15 +85,17 @@ const ROL_CONFIG = {
 
 export default function Bienvenida() {
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user, logout, isImpersonating, stopImpersonating } = useAuthStore();
 
   // Estado para alternar menús desplegables (almacena el índice del menú abierto, o null)
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
 
+  const [confirmando, setConfirmando] = useState(false);
   // Notificaciones
   const [noLeidas, setNoLeidas] = useState(0);
   const prevCountRef = useRef(0);
   const [newNotifCount, setNewNotifCount] = useState(0);
+
 
   const fetchNoLeidas = useCallback(async () => {
     try {
@@ -120,9 +124,16 @@ export default function Bienvenida() {
   const saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
 
   const handleLogout = async () => {
-    await logout();
-    navigate("/login", { replace: true });
-  };
+  if (isImpersonating) {
+    try { await detenerImpersonacion(); } catch (_) {}
+    stopImpersonating();
+    setConfirmando(false);
+    navigate("/admin/GestionarUsuarios", { replace: true });
+    return;
+  }
+  await logout();
+  navigate("/login", { replace: true });
+};
 
   return (
     <div style={{ ...styles.root, background: config.bg }}>
@@ -211,14 +222,29 @@ export default function Bienvenida() {
               )}
             </button>
           )}
-          <button onClick={handleLogout} style={styles.logoutBtn}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            Cerrar sesión
-          </button>
+<button
+  onClick={() => (isImpersonating ? setConfirmando(true) : handleLogout())}
+  style={isImpersonating ? styles.returnBtn : styles.logoutBtn}
+>
+  {isImpersonating ? (
+    <>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M9 14l-4-4 4-4" />
+        <path d="M5 10h11a4 4 0 0 1 4 4v1" />
+      </svg>
+      Volver a mi cuenta
+    </>
+  ) : (
+    <>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        <polyline points="16 17 21 12 16 7" />
+        <line x1="21" y1="12" x2="9" y2="12" />
+      </svg>
+      Cerrar sesión
+    </>
+  )}
+</button>
         </div>
       </header>
       {/* Info strip */}
@@ -319,7 +345,13 @@ export default function Bienvenida() {
             })}
           </div>
         </div>
-
+<ConfirmModal
+  open={confirmando}
+  title="Volver a mi cuenta"
+  message={`Estás viendo el sistema como ${user?.nombre} (${user?.rol}). ¿Deseas salir de este modo y volver a tu cuenta de administrador?`}
+  onConfirm={handleLogout}
+  onCancel={() => setConfirmando(false)}
+/>
       </main>
     </div>
   );
@@ -447,4 +479,17 @@ const styles = {
     height: 18,
     background: "#dbe3ee",
   },
+  returnBtn: {
+  display: "flex",
+  alignItems: "center",
+  gap: 7,
+  padding: "0.45rem 1rem",
+  border: "none",
+  borderRadius: 8,
+  background: "#0f172a",
+  color: "white",
+  fontSize: "0.84rem",
+  fontWeight: 600,
+  cursor: "pointer",
+},
 };

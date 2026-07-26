@@ -43,3 +43,6 @@ export const asignarRol = (id, rol) => api.put(`/usuarios/${id}/rol`, { rol });
 export default api;
 
 export const obtenerCarreras = () => api.get("/carrera");
+//Impersonar
+export const impersonarUsuario = (id) => api.post(`/usuarios/${id}/impersonar`);
+export const detenerImpersonacion = () => api.post('/impersonar/detener');

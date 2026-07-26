@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import useAuthStore from '../../stores/useAuthStore';
+import ImpersonationBar from './ImpersonationBar';
 
 export default function ProtectedRoute({ children, roles }) {
   const { isAuthenticated, user } = useAuthStore();
@@ -10,5 +11,10 @@ export default function ProtectedRoute({ children, roles }) {
     return <Navigate to={fallback[user?.rol] || "/login"} replace />;
   }
 
-  return children;
+  return (
+    <>
+      <ImpersonationBar />
+      {children}
+    </>
+  );
 }

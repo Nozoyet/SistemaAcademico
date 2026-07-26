@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUsuarios, eliminarUsuario, asignarRol } from "../../services/api";
+import useAuthStore from "../../stores/useAuthStore";
+import { getUsuarios, eliminarUsuario, asignarRol, impersonarUsuario } from "../../services/api";
 import FormCrearUsuario from "../../components/forms/FormCrearUsuario";
 
 const ADMIN_CONFIG = {
@@ -38,13 +39,15 @@ export default function GestionUsuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [pagina, setPagina] = useState(1);
-const [porPagina, setPorPagina] = useState(25);
+  const [porPagina, setPorPagina] = useState(25);
   const [error, setError] = useState("");
   const [mostrarForm, setMostrarForm] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [confirmId, setConfirmId] = useState(null);
   const [filtroRol, setFiltroRol] = useState("Todos");
   const [notif, setNotif] = useState(null);
+
+  const impersonate = useAuthStore((s) => s.impersonate);
 
   useEffect(() => { cargarUsuarios(); }, []);
   useEffect(() => { setPagina(1); }, [busqueda, filtroRol]);
@@ -56,6 +59,22 @@ const [porPagina, setPorPagina] = useState(25);
     finally { setCargando(false); }
   };
 
+  const RUTAS_BIENVENIDA = {
+  Docente: "/docente/bienvenida",
+  Estudiante: "/estudiante/bienvenida",
+};
+
+const handleImpersonar = async (u) => {
+  try {
+    const res = await impersonarUsuario(u.id);
+    const { token, user } = res.data;
+    impersonate(token, user);
+    navigate(RUTAS_BIENVENIDA[user.rol] || "/", { replace: true });
+  } catch (e) {
+    console.error("Error real de impersonación:", e);
+    mostrarNotif(e.response?.data?.message || "No se pudo iniciar la suplantación.", "error");
+  }
+};
   const mostrarNotif = (msg, tipo = "ok") => {
     setNotif({ msg, tipo });
     setTimeout(() => setNotif(null), 3000);
@@ -322,6 +341,24 @@ const paginados = filtrados.slice(inicio, inicio + porPagina);
                         Eliminar
                       </button>
                     </td>
+                    <td style={{ padding: "13px 16px" }}>
+  <div style={{ display: "flex", gap: 6 }}>
+    {u.rol !== "Administrador" && (
+      <button
+        onClick={() => handleImpersonar(u)}
+        title="Entrar como este usuario"
+        style={{
+          backgroundColor: "#EEF2FF", color: "#4F46E5",
+          border: "1px solid #C7D2FE", borderRadius: 7,
+          padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+        }}
+      >
+        Entrar como
+      </button>
+    )}
+    
+  </div>
+</td>
                   </tr>
                 ))}
               </tbody>
