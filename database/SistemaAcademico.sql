@@ -1,33 +1,9 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Jun 03, 2026 at 08:18 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS=0;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `sistema_academico`
---
-CREATE DATABASE IF NOT EXISTS `sistema_academico` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `sistema_academico`;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `cache`
---
 
 CREATE TABLE `cache` (
   `key` varchar(255) NOT NULL,
@@ -35,11 +11,6 @@ CREATE TABLE `cache` (
   `expiration` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `cache_locks`
---
 
 CREATE TABLE `cache_locks` (
   `key` varchar(255) NOT NULL,
@@ -47,7 +18,6 @@ CREATE TABLE `cache_locks` (
   `expiration` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- --------------------------------------------------------
 
 --
 -- Table structure for table `carrera`
@@ -84,8 +54,8 @@ CREATE TABLE `curso` (
   `idMateria` int(11) NOT NULL,
   `idPeriodoAcademico` int(11) NOT NULL,
   `idDocente` int(11) NOT NULL,
-  `cupoMaximo` int(11) NOT NULL,
-  `cupoActual` int(11) DEFAULT 0 CHECK (`cupoActual` <= `cupoMaximo`),
+  `cupoActual` int NOT NULL,
+  `cupoMaximo` int NOT NULL,
   `estado` tinyint(1) DEFAULT 1,
   `usuarioA` varchar(50) NOT NULL,
   `fechaHoraA` datetime DEFAULT current_timestamp(),
@@ -2420,7 +2390,7 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 --
 
 CREATE TABLE `modalidad` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NULL,
   `nombre` enum('Mensual','Semestral','Anual') NOT NULL,
   `maxMateriasPermitidas` int(11) NOT NULL,
   `usuarioA` varchar(50) NOT NULL,
@@ -3054,7 +3024,3 @@ ALTER TABLE `pensum`
 ALTER TABLE `periodoacademico`
   ADD CONSTRAINT `periodoacademico_ibfk_1` FOREIGN KEY (`idCarrera`) REFERENCES `carrera` (`id`);
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
